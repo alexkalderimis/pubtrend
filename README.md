@@ -31,4 +31,4 @@ trend will be overlaid in the chart area.
 
 ## License
 
-Copyright © 2013 FIXME
+Copyright © 2013 Alexis Kalderimis
