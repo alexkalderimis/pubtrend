@@ -58,7 +58,10 @@
                   [:div {:class "row"}
                   [:div {:class "large-3 columns"}
                     [:label "Term"]
-                    [:input {:id "pubtrends-term" :type "text" }]]
+                    [:div {:id "pubtrends-terms"}
+                      [:input {:class "pubtrends-term" :type "text" }]]
+                    [:button { :title "Add a search term" :id "add-term"
+                               :class "small secondary button"} "+"]]
                   [:div {:class "large-3 columns"}
                     [:label "Start"]
                     [:input {:id "pubtrends-from"
