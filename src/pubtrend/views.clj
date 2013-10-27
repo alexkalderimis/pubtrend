@@ -47,7 +47,13 @@
      [:nav {:class "top-bar hide-for-small"}
       [:ul {:class "title-area"}
        [:li {:class "name"}
-        [:h1 title]]]]
+        [:h1 title]]]
+      [:section {:class "top-bar-section"}
+       [:ul {:class "right"}
+        [:li {:class "has-from"}
+         [:a {:class "button"
+              :href "https://github.com/alexkalderimis/pubtrend"}
+             "View on github"]]]]]
      [:section {:id "content" :class "main"} body]]))
 
 (defn four-oh-four []
@@ -61,6 +67,9 @@
      [:div {:class "large-3 columns"}
       [:div {:class "callout panel"}
        [:h3 "Trend Parameters"]
+       [:p "This application shows the number of publications published per year
+           matching given search terms as reported by"
+           [:a {:href "http://www.ncbi.nlm.nih.gov/pubmed"} "pubmed"]]
        [:p "Adjust the trend parameters here. You can search for one or
             more terms over a given period, up to the present day. Change
             the displayed window of time by using the pagination controls,
@@ -76,12 +85,8 @@
           [:div {:id "pubtrends-terms"}
            (form/text-field {:class "pubtrends-term"} "term")]
           [:div {:class "row"}
-           [:div {:class "small-6 columns"}
             [:button { :title "Add a search term" :id "add-term"
-                      :class "small secondary button"} "+"]]
-           [:div {:class "small-6 columns"}
-            [:button { :title "Remove the last search term" :id "rem-term"
-                      :class "small secondary button"} "-"]]]]
+                      :class "small secondary button"} "+"]]]
 
          [:div {:class "large-3 columns"}
           (form/label "pubtrends-from" "Start")

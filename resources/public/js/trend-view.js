@@ -8,7 +8,6 @@ define(function () {
     events: {
       "submit": "onSubmit",
       "click #add-term": "addTerm",
-      "click #rem-term": "removeTerm"
     },
 
     addTerm: function (evt) {
@@ -17,9 +16,36 @@ define(function () {
       this.addTermBox();
     },
 
-    addTermBox: function (val) {
-      var tb = $('<input class="pubtrends-term" type="text">');
-      this.$('#pubtrends-terms').append(tb);
+    addTermBox: function (val, idx) {
+      var self = this
+        , container = this.$('#pubtrends-terms')
+        , terms = self.model.get('terms').slice()
+        , row  = $('<div class="row">')
+        , tb = $('<input class="pubtrends-term" type="text">')
+        , rm = $('<button class="small secondary button">-</button>');
+      
+      if (idx != null && idx === 0) {
+        row.append(tb)
+      } else {
+        var left = $('<div class="small-8 columns">');
+        left.append(tb);
+        row.append(left);
+        var right = $('<div class="small-4 columns">');
+        right.append(rm);
+        row.append(right);
+        rm.click(function (evt) {
+          evt.preventDefault();
+          evt.stopImmediatePropagation();
+          if (idx == null) {
+            row.remove(); // not in model, just UI.
+          } else {
+            terms.splice(idx, 1); // Remove this term from model
+            self.model.set('terms', terms)
+          }
+        });
+      }
+
+      this.$('#pubtrends-terms').append(row);
       if (val != null) tb.val(val);
     },
 
@@ -57,7 +83,7 @@ define(function () {
     },
 
     render: function () {
-      this.$('.pubtrends-term').remove();
+      this.$('#pubtrends-terms').empty();
       this.model.get('terms').forEach(this.addTermBox.bind(this));
       this.$('#pubtrends-from').val(this.model.get('start'));
       this.$('#pubtrends-til').val(this.model.get('end'));
