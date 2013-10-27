@@ -19,6 +19,12 @@ define(["Q", "./dispatcher", "./data-source"], function(Q, dispatcher, getData) 
     }
     return ret;
   };
+  var getParamsets = function (opts) {
+    return opts.terms.map(function(term) {
+      return {term: term, start: opts.start, end: opts.end};
+    });
+  };
+
 
   var TrendChartView = Backbone.View.extend({
 
@@ -150,15 +156,22 @@ define(["Q", "./dispatcher", "./data-source"], function(Q, dispatcher, getData) 
     },
 
     fetchData: function () {
-      var self = this
-        , opts = this.model.toJSON()
-        , paramsets = opts.terms.map(function (term) {
-            return {term: term, start: opts.start, end: opts.end};
-          })
-        , promises = paramsets.map(getData);
-      return Q.all(promises).then(mergeDataSets).then(function (data) {
+      var ret, self = this
+        , current = this.model.toJSON()
+        , promises = getParamsets(current).map(getData);
+
+      var ret = Q.all(promises).then(mergeDataSets).then(function (data) {
         return self.data = data.slice();
       });
+      ret.done(function () {
+        var earlier = self.getNextState("earlier")
+          , later = self.getNextState("later");
+        // Warm the local cache by prefetching left and right pages.
+        // only fetching later pages when they are different from the current one.
+        getParamsets(earlier).forEach(getData);
+        if (later.end > current.end) getParamsets(later).forEach(getData);
+      });
+      return ret;
     },
       
     updateChart: function updateChart () {
@@ -268,7 +281,7 @@ define(["Q", "./dispatcher", "./data-source"], function(Q, dispatcher, getData) 
       }
     },
 
-    pageChart: function (direction) {
+    getNextState: function (direction) {
       var opts = this.model.toJSON()
         , incr = 5;
       if (direction == "earlier") {
@@ -279,7 +292,11 @@ define(["Q", "./dispatcher", "./data-source"], function(Q, dispatcher, getData) 
             opts.start + incr);
           opts.end = Math.min(CURRENT_YEAR, opts.end + incr);
       }
-      this.model.set(opts);
+      return opts;
+    },
+
+    pageChart: function (direction) {
+      this.model.set(this.getNextState(direction));
     },
 
     getDimensions: function () {
