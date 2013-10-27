@@ -3,7 +3,7 @@
 A demonstration web-app for illustrating the use of d3 for
 visualising the results of NIH ESearch web-services.
 
-![Image](../blob/master/resources/pubtrend.png?raw=true)
+![Image](../master/resources/pubtrend.png?raw=true)
 
 
 ## Prerequisites
