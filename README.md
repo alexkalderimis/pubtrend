@@ -9,7 +9,7 @@ You can see a demonstration of the server-less version of this
 program on [gh-pages][2]. See below for instructions on
 installing the middle-ware server.
 
-[2]: https://alexkalderimis.github.io/pubtrend
+[2]: http://alexkalderimis.github.io/pubtrend
 
 ## Prerequisites
 
