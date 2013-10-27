@@ -30,7 +30,7 @@ svg {
 }
 
 .title {
-  font: 300 78px Helvetica Neue;
+  font: 300 64px Rokkit; /* Helvetica Neue; */
   fill: #666;
 }
 
@@ -42,11 +42,16 @@ svg {
   fill: #fff;
 }
 
+nav h1 {
+    font-family: 'Rokkitt', serif;
+}
+
 rect {
-  fill-opacity: .5;
+  fill-opacity: .4;
   fill: #e377c2;
 }
 
 rect:first-child {
+  fill-opacity: .5;
   fill: #1f77b4;
 }
