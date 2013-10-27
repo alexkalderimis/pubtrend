@@ -18,7 +18,9 @@ modern web browsers are definitely recommended.
 
 ### Server Side Installation Instructions
 
-You will need [Leiningen][1] 1.7.0 or above installed. 
+You will need [Leiningen][1] 1.7.0 or above installed. Once
+installed the `lein` command will automatically handle
+dependencies and compilation when you run the server (see below).
 
 [1]: https://github.com/technomancy/leiningen
 
