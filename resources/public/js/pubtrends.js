@@ -141,6 +141,7 @@
         if (self.title) self.title.text(self.model.get("term"));
       });
       d3.select(window).on("keydown", this.onKeydown.bind(this));
+      dispatcher.on("page-chart", this.pageChart.bind(this));
     },
 
     render: function () {
@@ -330,18 +331,24 @@
     },
 
     onKeydown: function () {
-      var opts = this.model.toJSON()
-        , incr = 5;
       switch (d3.event.keyCode) {
         case 37: // Left
+          return this.pageChart("earlier");
+        case 39: // Right
+          return this.pageChart("later");
+      }
+    },
+
+    pageChart: function (direction) {
+      var opts = this.model.toJSON()
+        , incr = 5;
+      if (direction == "earlier") {
           opts.start = opts.start - incr;
           opts.end = opts.end - incr;
-          break;
-        case 39: // Right
+      } else if (direction == "later") {
           opts.start = Math.min(CURRENT_YEAR + 1 - this.data.length,
             opts.start + incr);
           opts.end = Math.min(CURRENT_YEAR, opts.end + incr);
-          break;
       }
       this.model.set(opts);
     },
@@ -391,6 +398,11 @@
   });
 
   main = function(opts) {
+    ["earlier", "later"].forEach(function(direction) {
+      $('#show-' + direction).click(function () {
+        dispatcher.trigger("page-chart", direction);
+      });
+    });
     var view = new TrendView({model: model})
       , chartView = new TrendChartView({model: model})
       , chartElem = document.getElementById('pubtrend-viz')
