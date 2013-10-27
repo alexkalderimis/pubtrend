@@ -1,0 +1,52 @@
+svg {
+  font: 10px sans-serif;
+}
+
+#pubtrend-viz {
+    width: 100%;
+    min-height: 450px;
+}
+
+.top-bar .name h1 {
+    font-weight: bold;
+    color: white;
+    display: block;
+    padding: 0 15px;
+}
+
+.y.axis path {
+  display: none;
+}
+
+.y.axis line {
+  stroke: #fff;
+  stroke-opacity: .2;
+  shape-rendering: crispEdges;
+}
+
+.y.axis .zero line {
+  stroke: #000;
+  stroke-opacity: 1;
+}
+
+.title {
+  font: 300 78px Helvetica Neue;
+  fill: #666;
+}
+
+.pubyear {
+  text-anchor: middle;
+}
+
+.pubyear {
+  fill: #fff;
+}
+
+rect {
+  fill-opacity: .6;
+  fill: #e377c2;
+}
+
+rect:first-child {
+  fill: #1f77b4;
+}

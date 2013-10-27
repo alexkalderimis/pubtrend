@@ -1,0 +1,21 @@
+{
+  "name": "pubtrend",
+  "version": "0.0.0",
+  "authors": [
+    "Alex Kalderimis <alexkalderimis@gmail.com>"
+  ],
+  "description": "Publication trends over time",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "q": "*"
+  },
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "public/components",
+    "test",
+    "tests"
+  ]
+}
