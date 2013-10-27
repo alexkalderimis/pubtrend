@@ -3,7 +3,7 @@
   var Trend, TrendView, dispatcher, drawChart, main, getData, getTrendUrl
     , model, CURRENT_YEAR, resultsCache, fromPairs, trendUrlTempl
     , getTermCache, addToCache, serveWithCacheHits, first, rest, slideTempl
-    , notTruthy, asObj, TrendChartView;
+    , notTruthy, asObj, TrendChartView, mergeDataSets;
 
   // Utilities and helpers
   first = function (xs) { return xs[0] };
@@ -26,6 +26,16 @@
   model = new Backbone.Model();
   dispatcher = _.clone(Backbone.Events);
 
+  mergeDataSets = function (datasets) {
+    var i, j, ret = datasets[0].map(function (row) { return row.slice(0, 1) });
+    for (i = 0; i < ret.length; i++) {
+      for (j = 0; j < datasets.length; j++) {
+        ret[i].push(datasets[j][i][1]);
+      }
+    }
+    return ret;
+  };
+
   CURRENT_YEAR = (new Date()).getUTCFullYear();
 
   TrendView = Backbone.View.extend({
@@ -34,19 +44,34 @@
       this.model.on('change', this.render.bind(this));
     },
     events: {
-      "submit": "onSubmit"
+      "submit": "onSubmit",
+      "click #add-term": "addTerm"
+    },
+    addTerm: function (evt) {
+      evt.preventDefault();
+      evt.stopImmediatePropagation();
+      this.addTermBox();
+    },
+    addTermBox: function (val) {
+      var tb = $('<input class="pubtrends-term" type="text">');
+      this.$('#pubtrends-terms').append(tb);
+      if (val != null) tb.val(val);
     },
     onSubmit: function (evt) {
       evt.preventDefault();
+      var terms = this.$('.pubtrends-term').map(function () {
+        return $(this).val();
+      }).get();
       var newOpts = {
-        term:  this.$('#pubtrends-term').val(),
+        terms:  terms,
         start: parseInt(this.$('#pubtrends-from').val(), 10),
         end:   parseInt(this.$('#pubtrends-til').val(), 10)
       };
       this.model.set(newOpts);
     },
     render: function () {
-      this.$('#pubtrends-term').val(this.model.get('term'));
+      this.$('.pubtrends-term').remove();
+      this.model.get('terms').forEach(this.addTermBox.bind(this));
       this.$('#pubtrends-from').val(this.model.get('start'));
       this.$('#pubtrends-til').val(this.model.get('end'));
       return this.el;
@@ -137,8 +162,9 @@
       this.priorState = this.model.toJSON();
       this.data = [];
       this.model.on("change", this.refreshChart.bind(this));
-      this.model.on("change:term", function () {
-        if (self.title) self.title.text(self.model.get("term"));
+      this.model.on("change:terms", function () {
+        this._maxY = 0; // reset max
+        if (self.title) self.title.text(self.model.get("terms").join(", "));
       });
       d3.select(window).on("keydown", this.onKeydown.bind(this));
       dispatcher.on("page-chart", this.pageChart.bind(this));
@@ -150,7 +176,8 @@
     },
 
     refreshChart: function () {
-      if (this.priorState.term == this.model.get("term")) {
+      var termsWere = this.priorState.terms;
+      if (termsWere && termsWere.join(',') == this.model.get("terms").join(',')) {
         this.updateYears();
       } else {
         this.updateChart();
@@ -205,10 +232,26 @@
     },
 
     addTitle: function (sel) {
+      var i, titleText, lines = [], buffer = "", terms = this.model.get("terms");
+      for (i in terms) {
+        if (buffer.length) buffer += ", ";
+        if (buffer.length >= 20) { // break at 20 chrs
+          lines.push(buffer);
+          buffer = "";
+        }
+        buffer += terms[i];
+      }
+      lines.push(buffer);
+
       this.title = sel.append("text")
          .attr("class", "title")
-         .attr("dy", ".71em")
-         .text(this.model.get('term'));
+         .attr("dy", ".71em");
+      this.title.selectAll("tspan").data(lines)
+          .enter()
+          .append("tspan")
+          .attr("x", 0)
+          .attr("dy", "1.2em")
+          .text(_.identity);
       return this.title;
     },
 
@@ -232,8 +275,13 @@
     },
 
     fetchData: function () {
-      var self = this;
-      return getData(this.model.toJSON()).then(function (data) {
+      var self = this
+        , opts = this.model.toJSON()
+        , paramsets = opts.terms.map(function (term) {
+            return {term: term, start: opts.start, end: opts.end};
+          })
+        , promises = paramsets.map(getData);
+      return Q.all(promises).then(mergeDataSets).then(function (data) {
         return self.data = data.slice();
       });
     },
@@ -413,7 +461,7 @@
   };
 
   main({
-    term: "asthma",
+    terms: ["asthma"],
     start: 2000,
     end: CURRENT_YEAR
   });
