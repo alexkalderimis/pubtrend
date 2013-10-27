@@ -200,57 +200,63 @@ define(["Q", "./dispatcher", "./data-source"], function(Q, dispatcher, getData) 
                        .domain([0, maxY])
     },
 
-    updateYears: function updateYears () {
-      var priorState = this.priorState
+    onUpdate: function (data) {
+      var pubYears, bars, texts
         , currentState = this.model.toJSON()
-        , self = this;
-      this.fetchData(currentState).then(function () {
-        var pubYears, bars, texts
-          , dims = self.getDimensions()
-          , x = self.getXScale()
-          , y = self.getYScale()
-          , transform = _.compose(slideTempl, asObj('x'), x, first)
-          , barWidth = self.getBarWidth()
-          , height = self.getBarHeight.bind(self);
-        
-        self.mainGroup.call(self.addYAxis.bind(self));
+        , dims = this.getDimensions()
+        , x = this.getXScale()
+        , y = this.getYScale()
+        , transform = _.compose(slideTempl, asObj('x'), x, first)
+        , barWidth = this.getBarWidth()
+        , height = this.getBarHeight.bind(this);
+      
+      this.mainGroup.call(this.addYAxis.bind(this));
 
-        pubYears = self.yearGroups.selectAll('.pubyear').data(self.data, first)
-        pubYears.exit()
-                .transition().duration(500)
-                .each(function () {
-                  d3.select(this).selectAll("rect")
-                    .transition().duration(500)
-                    .attr("y", dims.height)
-                    .attr("height", 0);
-                 })
-                .attr("transform", function (row) {
-                  var x = (row[0] > currentState.end) ? dims.width : 0;
-                  return slideTempl({x: x});
-                }).remove();
-        pubYears.enter()
-                .append("g")
-                .attr("class", "pubyear")
-                .attr("transform", transform);
-        pubYears.transition().duration(500).attr("transform", transform);            
+      pubYears = this.yearGroups.selectAll('.pubyear').data(data, first)
+      pubYears.exit()
+              .transition().duration(500)
+              .each(function () {
+                d3.select(this).selectAll("rect")
+                  .transition().duration(500)
+                  .attr("y", dims.height)
+                  .attr("height", 0);
+                })
+              .attr("transform", function (row) {
+                var x = (row[0] > currentState.end) ? dims.width : 0;
+                return slideTempl({x: x});
+              }).remove();
+      pubYears.enter()
+              .append("g")
+              .attr("class", "pubyear")
+              .attr("transform", transform);
+      pubYears.transition().duration(500).attr("transform", transform);            
 
-        bars = pubYears.selectAll("rect").data(rest);
-        bars.exit().remove();
-        bars.enter().append("rect")
-              .attr("x", -barWidth / 2)
-              .attr("width", barWidth)
-              .attr("y", dims.height)
-              .attr("height", 0);
-        bars.transition().duration(500)
-              .attr("x", -barWidth / 2)
-              .attr("width", barWidth)
-              .attr("y", y)
-              .attr("height", height);
+      bars = pubYears.selectAll("rect").data(rest);
+      bars.exit().remove();
+      bars.enter().append("rect")
+            .attr("x", -barWidth / 2)
+            .attr("width", barWidth)
+            .attr("y", dims.height)
+            .attr("height", 0);
+      bars.transition().duration(500)
+            .attr("x", -barWidth / 2)
+            .attr("width", barWidth)
+            .attr("y", y)
+            .attr("height", height);
 
-        texts = pubYears.selectAll("text").data(function (row) { return [row[0]]; });
-        texts.enter().append("text").attr('y', dims.height - 4);
-        texts.text(_.identity);
-      });
+      texts = pubYears.selectAll("text").data(function (row) { return [row[0]]; });
+      texts.enter().append("text").attr('y', dims.height - 4);
+      texts.text(_.identity);
+    },
+
+    updateYears: function updateYears () {
+      this.fetchData(currentState).then(this.onUpdate.bind(this));
+      var currentState = this.model.toJSON()
+        , filtered = this.data.filter(function (datum) {
+            var year = datum[0];
+            return year >= currentState.start && year <= currentState.end;
+        });
+      this.onUpdate(filtered);
     },
 
     onKeydown: function () {
