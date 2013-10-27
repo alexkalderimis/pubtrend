@@ -5,18 +5,31 @@ visualising the results of NIH ESearch web-services.
 
 ![Image](../master/resources/pubtrend.png?raw=true)
 
+You can see a demonstration of the server-less version of this
+program on [gh-pages][2]. See below for instructions on
+installing the middle-ware server.
+
+[2]: https://alexkalderimis.github.io/pubtrend
 
 ## Prerequisites
+
+There are no prerequisites for the client side version, although
+modern web browsers are definitely recommended.
+
+### Server Side Installation Instructions
 
 You will need [Leiningen][1] 1.7.0 or above installed. 
 
 [1]: https://github.com/technomancy/leiningen
 
-## Running
+### Running
 
 To start a web server for the application, run:
 
     lein ring server
+
+The port may be supplied through the `PORT` parameter. See `lein
+help ring` for further details.
 
 ## Usage
 
