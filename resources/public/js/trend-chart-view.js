@@ -1,5 +1,5 @@
 // Assumes non require loading of d3, Backbone and underscore.
-define(["Q", "./dispatcher", "./data-source"], function(Q, dispatcher, getData) {
+define(["Q", "./dispatcher", "data-source"], function(Q, dispatcher, getData) {
 
   // Utilities, helpers, constants, etc.
   var CURRENT_YEAR = (new Date()).getUTCFullYear();
@@ -24,7 +24,6 @@ define(["Q", "./dispatcher", "./data-source"], function(Q, dispatcher, getData) 
       return {term: term, start: opts.start, end: opts.end};
     });
   };
-
 
   var TrendChartView = Backbone.View.extend({
 
