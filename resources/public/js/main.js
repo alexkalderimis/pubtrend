@@ -1,7 +1,7 @@
 require.config({
   paths: {
     "Q": "/vendor/q/q",
-    "data-source": "/js/data-source"
+    "data-source": "/js/middle-ware-data-source"
   }
 });
 
