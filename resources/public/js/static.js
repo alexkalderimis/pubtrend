@@ -1,7 +1,7 @@
 require.config({
   paths: {
-    "Q": "/resources/public/vendor/q/q",
-    "data-source": "/resources/public/js/client-side-data-source"
+    "Q": "../vendor/q/q",
+    "data-source": "./client-side-data-source"
   }
 });
 
