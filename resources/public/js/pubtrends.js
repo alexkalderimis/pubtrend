@@ -285,7 +285,6 @@
           , dims = self.getDimensions()
           , x = self.getXScale()
           , y = self.getYScale()
-          , yearDelta = x(priorState.end) - x(currentState.end)
           , transform = _.compose(slideTempl, asObj('x'), x, first)
           , barWidth = self.getBarWidth()
           , height = self.getBarHeight.bind(self);
@@ -295,12 +294,15 @@
         pubYears = self.yearGroups.selectAll('.pubyear').data(self.data, first)
         pubYears.exit()
                 .transition().duration(500)
+                .each(function () {
+                  d3.select(this).selectAll("rect")
+                    .transition().duration(500)
+                    .attr("y", dims.height)
+                    .attr("height", 0);
+                 })
                 .attr("transform", function (row) {
-                  if (row[0] > currentState.end) {
-                    return slideTempl({x: dims.width});
-                  } else {
-                    return slideTempl({x: 0});
-                  }
+                  var x = (row[0] > currentState.end) ? dims.width : 0;
+                  return slideTempl({x: x});
                 }).remove();
         pubYears.enter()
                 .append("g")
@@ -309,11 +311,7 @@
         pubYears.transition().duration(500).attr("transform", transform);            
 
         bars = pubYears.selectAll("rect").data(rest);
-        bars.exit()
-            .transition().duration(500)
-            .attr("y", dims.height)
-            .attr("height", 0)
-            .remove();
+        bars.exit().remove();
         bars.enter().append("rect")
               .attr("x", -barWidth / 2)
               .attr("width", barWidth)
