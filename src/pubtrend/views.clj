@@ -114,4 +114,4 @@
           (trend-controls)
           (map with-utf8-charset
                (conj (apply include-js vendor-scripts)
-                     (entry-point "/js/main")))))
+                     (entry-point "/js/client")))))
