@@ -30,12 +30,13 @@ svg {
 }
 
 .title {
-  font: 300 64px Rokkit; /* Helvetica Neue; */
+  font: 300 48px Rokkit; /* Helvetica Neue; */
   fill: #666;
 }
 
 .pubyear {
   text-anchor: middle;
+  font-weight: bold;
 }
 
 .pubyear {
@@ -44,14 +45,39 @@ svg {
 
 nav h1 {
     font-family: 'Rokkitt', serif;
+    font-size: 32px;
 }
 
 rect {
   fill-opacity: .4;
-  fill: #e377c2;
 }
 
 rect:first-child {
   fill-opacity: .5;
-  fill: #1f77b4;
 }
+
+.popup {
+    background: #fefefe;
+    max-width: 200px;
+    color: #555;
+    border: 1px solid #6a6a6a;
+    padding: 12px;
+    box-sizing: border-box;
+}
+
+.popup p {
+    margin-bottom: 0.5em;
+}
+
+.popup.arrowed::after {
+    position: relative;
+    content: ' ';
+    left: 44%;
+    top: 40px;
+    height: 0px;
+    width: 0px;
+    border-top: 10px solid #6a6a6a;
+    border-right: 10px solid transparent;
+    border-left: 10px solid transparent;
+}
+

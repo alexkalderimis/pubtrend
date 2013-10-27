@@ -25,6 +25,47 @@ define(["Q", "./dispatcher", "data-source"], function(Q, dispatcher, getData) {
     });
   };
 
+  var popups = {};
+  var clearPopups = function () {
+    var k;
+    for (k in popups) {
+      popups[k].remove();
+      delete popups[k];
+    }
+  };
+
+  dispatcher.on("click:bar", function (term, year, count, coords) {
+    var top, key = [term, year].join('')
+      , isActive = !!popups[key]
+      , popup = $('<div/>')
+      , templ = _.template(
+        "<h4><%= term %></h4><p><%= count %> publications in <%= year %></p>");
+
+    clearPopups();
+    if (isActive) return;
+
+    popups[key] = popup;
+    popup.addClass("popup");
+
+    popup.append(templ({term: term, count: count, year: year}));
+
+    popup.appendTo('body');
+
+    top = Math.max(20, coords.barPos.top - 30 - popup.height());
+    popup.css({
+      position: "absolute",
+      top: top,
+      left: Math.max(20, coords.barPos.left + (coords.barWidth / 2) - (popup.width() / 2))
+    });
+
+    if ((top + popup.height()) < coords.barPos.top) {
+      popup.addClass("arrowed");
+    }
+
+    popup.click(popup.remove.bind(popup));
+
+  });
+
   var TrendChartView = Backbone.View.extend({
 
     initialize: function () {
@@ -47,6 +88,7 @@ define(["Q", "./dispatcher", "data-source"], function(Q, dispatcher, getData) {
 
     refreshChart: function () {
       var termsWere = this.priorState.terms;
+      clearPopups();
       if (termsWere && termsWere.join(',') == this.model.get("terms").join(',')) {
         this.updateYears();
       } else {
@@ -65,14 +107,46 @@ define(["Q", "./dispatcher", "data-source"], function(Q, dispatcher, getData) {
                   .attr("transform", centreBtmRight);
     },
 
+    getBarX: function (barWidth, nBars) { return function (d, i) {
+      var delta = barWidth * i
+        , halfBar = barWidth / 2
+        , shift = -(halfBar / nBars);
+      return shift + delta;
+    }},
+
+    getBarColour: function (d, i) {
+      var scale = (this._barScale || (this._barScale = d3.scale.category20b()));
+      return scale(i);
+    },
+
+    onBarClick: function () {
+      var self = this;
+      return function (count, i) {
+        var term = self.model.get('terms')[i];
+        var year = d3.select(this.parentElement).datum()[0];
+        var coords = {
+          x: d3.event.pageX,
+          y: d3.event.pageY,
+          barWidth: $(this).width(),
+          barPos: $(this).position()
+        };
+        dispatcher.trigger('click:bar', term, year, count, coords);
+      };
+    },
+
     addBars: function (sel) {
       var barWidth = this.getBarWidth()
+        , self = this
         , height = this.getBarHeight.bind(this)
-        , y = this.getYScale();
+        , y = this.getYScale()
+        , nBars = rest(this.data[0]).length;
+
       return sel.selectAll("rect").data(rest)
                 .attr("height", height)
               .enter().append("rect")
-                .attr("x", -barWidth / 2)
+                .on("click", this.onBarClick())
+                .attr("fill", this.getBarColour.bind(this))
+                .attr("x", this.getBarX(barWidth, nBars))
                 .attr("width", barWidth)
                 .attr("y", y)
                 .attr("height", height);
@@ -184,7 +258,8 @@ define(["Q", "./dispatcher", "data-source"], function(Q, dispatcher, getData) {
     },
 
     getBarWidth: function () {
-      return Math.floor(this.getDimensions().width / this.data.length) - 1;
+      var nBars = rest(this.data[0]).length;
+      return (Math.floor(this.getDimensions().width / this.data.length) - 1) / nBars;
     },
 
     getXScale: function () {
@@ -220,6 +295,7 @@ define(["Q", "./dispatcher", "data-source"], function(Q, dispatcher, getData) {
         , y = this.getYScale()
         , transform = _.compose(slideTempl, asObj('x'), x, first)
         , barWidth = this.getBarWidth()
+        , nBars = rest(this.data[0]).length
         , height = this.getBarHeight.bind(this);
       
       this.mainGroup.call(this.addYAxis.bind(this));
@@ -246,12 +322,14 @@ define(["Q", "./dispatcher", "data-source"], function(Q, dispatcher, getData) {
       bars = pubYears.selectAll("rect").data(rest);
       bars.exit().remove();
       bars.enter().append("rect")
-            .attr("x", -barWidth / 2)
+            .on("click", this.onBarClick())
+            .attr("x", this.getBarX(barWidth, nBars))
+            .attr("fill", this.getBarColour.bind(this))
             .attr("width", barWidth)
             .attr("y", dims.height)
             .attr("height", 0);
       bars.transition().duration(500)
-            .attr("x", -barWidth / 2)
+            .attr("x", this.getBarX(barWidth, nBars))
             .attr("width", barWidth)
             .attr("y", y)
             .attr("height", height);
