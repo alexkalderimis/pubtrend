@@ -4,7 +4,7 @@
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [org.clojure/tools.logging "0.2.3"]
                  [compojure "1.1.5"]
-                 [hiccup "1.0.2"]
+                 [hiccup "1.0.4"]
                  [cheshire "5.2.0"]
                  [org.slf4j/slf4j-simple "1.7.5"]
                  [http.async.client "0.5.2"]]
