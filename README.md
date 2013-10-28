@@ -28,7 +28,7 @@ dependencies and compilation when you run the server (see below).
 
 To start a web server for the application, run:
 
-    lein ring server
+    lein ring server-headless
 
 The port may be supplied through the `PORT` parameter. See `lein
 help ring` for further details.
