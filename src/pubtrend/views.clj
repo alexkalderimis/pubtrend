@@ -1,7 +1,8 @@
 (ns pubtrend.views
   (:import [java.util Calendar Date])
   (:require [hiccup.form :as form])
-  (:use [hiccup.page :only (html5 include-css include-js)]))
+  (:use [hiccup.page :only (html5 include-css include-js)]
+        [hiccup.element :only (javascript-tag mail-to)]))
 
 (defn- get-current-year []
   (-> (doto (Calendar/getInstance)
@@ -27,9 +28,10 @@
     [:input attrs]))
 
 (def vendor-scripts [
-                     "/vendor/zepto/zepto.js"
+                     "/vendor/zepto.js"
                      "/vendor/underscore/underscore-min.js"
                      "/vendor/backbone/backbone-min.js"
+                     "/vendor/foundation.min.js"
                      "/js/d3.v3.js"])
 
 (defn common [title & body]
@@ -50,6 +52,9 @@
         [:h1 title]]]
       [:section {:class "top-bar-section"}
        [:ul {:class "right"}
+        [:li
+         (mail-to "alex.kalderimis@gmail.com" "Contact")]
+        [:li {:clsss "divider"}]
         [:li {:class "has-from"}
          [:a {:class "button"
               :href "https://github.com/alexkalderimis/pubtrend"}
@@ -64,7 +69,7 @@
 (defn trend-controls []
   (let [this-year (get-current-year)]
     [:div {:class "row"}
-     [:div {:class "large-3 columns"}
+     [:div {:class "large-5 columns"}
       [:div {:class "callout panel"}
        [:h3 "Trend Parameters"]
        [:p "This application shows the number of publications published per year
@@ -74,13 +79,13 @@
             more terms over a given period, up to the present day. Change
             the displayed window of time by using the pagination controls,
             or the left and right buttons on the keyboard."]]]
-     [:div {:class "large-9 columns"}
+     [:div {:class "large-7 columns"}
       [:form {:id "pubtrend-terms"}
        [:fieldset
         [:legend "Parameters"]
         [:div {:class "row"}
          
-         [:div {:class "large-3 columns"}
+         [:div {:class "large-6 columns"}
           (form/label "pubtrends-term" "Terms")
           [:div {:id "pubtrends-terms"}
            (form/text-field {:class "pubtrends-term"} "term")]
@@ -89,12 +94,12 @@
                       :class "small secondary button"} "+"]]]
 
          [:div {:class "large-3 columns"}
-          (form/label "pubtrends-from" "Start")
-          (num-field "pubtrends-from" 1800 this-year (- this-year 20))]
-
-         [:div {:class "large-3 columns"}
-          (form/label "pubtrends-til" "End")
-          (num-field "pubtrends-til" 1800 this-year this-year)]
+          [:div {:class "row"}
+            (form/label "pubtrends-from" "Start")
+            (num-field "pubtrends-from" 1800 this-year (- this-year 20))]
+          [:div {:class "row"}
+            (form/label "pubtrends-til" "End")
+            (num-field "pubtrends-til" 1800 this-year this-year)]]
 
          [:div {:class "large-3 columns"}
           (form/submit-button {:class "button"} "get-data")]]]]]]))
@@ -119,4 +124,5 @@
           (trend-controls)
           (map with-utf8-charset
                (conj (apply include-js vendor-scripts)
-                     (entry-point "/js/client")))))
+                     (entry-point "/js/client")))
+          (javascript-tag "$(document).foundation();")))

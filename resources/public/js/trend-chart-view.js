@@ -1,5 +1,6 @@
 // Assumes non require loading of d3, Backbone and underscore.
-define(["Q", "./dispatcher", "data-source"], function(Q, dispatcher, getData) {
+define(["Q", "./dispatcher", "data-source", "abstract-source", './journal-list'],
+    function(Q, dispatcher, getData, getAbstracts, JournalList) {
 
   // Utilities, helpers, constants, etc.
   var CURRENT_YEAR = (new Date()).getUTCFullYear();
@@ -38,20 +39,36 @@ define(["Q", "./dispatcher", "data-source"], function(Q, dispatcher, getData) {
     var top, key = [term, year].join('')
       , isActive = !!popups[key]
       , popup = $('<div/>')
-      , templ = _.template(
-        "<h4><%= term %></h4><p><%= count %> publications in <%= year %></p>");
-
+      , modalBtn = $('<a class="small button">See abstracts</a>')
+      , templ = _.template([
+        "<h4><%= year %>: <%= term %></h4>",
+        "<p><%= count %> publications</p>"].join(''));
+     
     clearPopups();
     if (isActive) return;
+
+    modalBtn.click(function () {
+      clearPopups();
+      var offset = 0, limit = 25;
+      getAbstracts(term, year, offset, limit).then(function (journals) {
+        var coll = new Backbone.Collection(journals)
+          , model = new Backbone.Model({
+              term: term, year: year, count: count, offset: offset, limit: limit
+            })
+          , view = new JournalList({collection: coll, model: model});
+        view.show();
+      });
+    });
 
     popups[key] = popup;
     popup.addClass("popup");
 
     popup.append(templ({term: term, count: count, year: year}));
+    popup.append(modalBtn);
 
     popup.appendTo('body');
 
-    top = Math.max(20, coords.barPos.top - 30 - popup.height());
+    top = Math.max(20, coords.barPos.top - 10 - popup.height());
     popup.css({
       position: "absolute",
       top: top,

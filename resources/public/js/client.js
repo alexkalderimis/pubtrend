@@ -1,7 +1,9 @@
 require.config({
   paths: {
     "Q": "/vendor/q/q",
-    "data-source": "/js/middle-ware-data-source"
+    "backbone-foundation-reveal": "/vendor/backbone.foundation.reveal.modal/js/modal",
+    "data-source": "/js/middle-ware-data-source",
+    "abstract-source": "/js/client-side-abstract-source"
   }
 });
 

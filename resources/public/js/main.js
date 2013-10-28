@@ -1,3 +1,7 @@
+if (typeof jQuery === 'undefined' && window.$) {
+  window.jQuery = $; // Hack to play nice with devs who insist on jQuery.
+}
+
 define(["./trend-view", "./trend-chart-view", "./dispatcher"],
   function (TrendView, TrendChartView, dispatcher) {
     

@@ -70,14 +70,24 @@ rect:first-child {
 }
 
 .popup.arrowed::after {
-    position: relative;
+    position: absolute;
     content: ' ';
     left: 44%;
-    top: 40px;
+    top: 100%;
     height: 0px;
     width: 0px;
     border-top: 10px solid #6a6a6a;
     border-right: 10px solid transparent;
     border-left: 10px solid transparent;
+}
+
+.journals {
+    list-style-type: none;
+    margin: 0;
+}
+
+.journal td.key {
+    font-weight: bold;
+    background: #efefef;
 }
 
