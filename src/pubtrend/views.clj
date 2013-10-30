@@ -109,7 +109,8 @@
    [:div {:class "small-3 columns"}
     [:button {:id "show-earlier" :class "small secondary button"}
      "See earlier"]]
-   [:div {:class "small-6 columns"}]
+   [:div {:class "small-6 columns"}
+    [:div {:id "messages"}]]
    [:div {:class "small-3 columns"}
     [:button {:id "show-later" :class "small secondary button"}
      "See later"]]])
