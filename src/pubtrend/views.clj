@@ -70,7 +70,7 @@
   (let [this-year (get-current-year)]
     [:div {:class "row"}
      [:div {:class "large-5 columns"}
-      [:div {:class "callout panel"}
+      [:div {:class "callout panel" :id "instructions"}
        [:h3 "Trend Parameters"]
        [:p "This application shows the number of publications published per year
            matching given search terms as reported by"
@@ -110,6 +110,12 @@
     [:button {:id "show-earlier" :class "small secondary button"}
      "See earlier"]]
    [:div {:class "small-6 columns"}
+    [:button {:id "zoom-in" :class "small secondary button"}
+     "zoom in"]
+    [:button {:id "zoom-out" :class "small secondary button"}
+     "zoom out"]
+    [:button {:id "re-zero" :class "small secondary button"}
+     "Rescale"]
     [:div {:id "messages"}]]
    [:div {:class "small-3 columns"}
     [:button {:id "show-later" :class "small secondary button"}
