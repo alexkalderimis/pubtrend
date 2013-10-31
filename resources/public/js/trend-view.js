@@ -3,6 +3,8 @@ define(function () {
   
     initialize: function () {
       this.model.on('change', this.render.bind(this));
+      this.model.on('reject-values', this.render.bind(this));
+      this.model.on('reject-values', this.noteError.bind(this));
     },
 
     events: {
@@ -16,15 +18,15 @@ define(function () {
       this.addTermBox();
     },
 
-    addTermBox: function (val, idx) {
+    addTermBox: function (val, idx, all) {
       var self = this
         , container = this.$('#pubtrends-terms')
-        , terms = self.model.get('terms').slice()
+        , terms = self.model.get('terms').slice() // slice to get fresh ref.
         , row  = $('<div class="row">')
         , tb = $('<input class="pubtrends-term" type="text">')
         , rm = $('<button class="small secondary button">-</button>');
       
-      if (idx != null && idx === 0) {
+      if (all != null && all.length == 1) {
         row.append(tb)
       } else {
         var left = $('<div class="small-8 columns">');
@@ -49,33 +51,18 @@ define(function () {
       if (val != null) tb.val(val);
     },
 
-    removeTerm: function (evt) {
-      if (evt) {
-        evt.preventDefault();
-        evt.stopImmediatePropagation();
-      }
-      var termBoxes = this.$('.pubtrends-term')
-        , lastBox = termBoxes.last()
-        , lastVal = lastBox.val()
-        , currentTerms = this.model.get('terms');
-      if (termBoxes.length > 1 &&
-        (lastVal == null || lastVal.trim().length == 0)) {
-        // Just get rid of the last empty box - superficial operation.
-        lastBox.remove();
-      } else if (currentTerms.length > 1) {
-        // Actually operate on the model.
-        this.model.set('terms', currentTerms.slice(0, currentTerms.length - 1));
-      }
-      // Always leave at least one term.
+    readTerms: function () {
+      var terms = this.$('.pubtrends-term')
+        .map(function () { return $(this).val(); })
+        .get()
+        .filter(function (t) { return t && t.trim().length });
+      return terms;
     },
 
     onSubmit: function (evt) {
       evt.preventDefault();
-      var terms = this.$('.pubtrends-term').map(function () {
-        return $(this).val();
-      }).get().filter(function (t) { return t && t.trim().length });
       var newOpts = {
-        terms:  terms,
+        terms:  this.readTerms(),
         start: parseInt(this.$('#pubtrends-from').val(), 10),
         end:   parseInt(this.$('#pubtrends-til').val(), 10)
       };
@@ -88,6 +75,12 @@ define(function () {
       this.$('#pubtrends-from').val(this.model.get('start'));
       this.$('#pubtrends-til').val(this.model.get('end'));
       return this.el;
+    },
+
+    noteError: function () {
+      var inputs = this.$('input');
+      inputs.addClass('error');
+      setTimeout(inputs.removeClass.bind(inputs, 'error'), 2500);
     }
   });
 
