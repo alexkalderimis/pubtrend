@@ -36,7 +36,7 @@ define(["Q", "./dispatcher", "data-source", "abstract-source", './journal-list']
   };
 
   dispatcher.on("click:bar", function (term, year, count, coords) {
-    var top, key = [term, year].join('')
+    var top, left, key = [term, year].join('')
       , isActive = !!popups[key]
       , popup = $('<div/>')
       , modalBtn = $('<a class="small button">See abstracts</a>')
@@ -68,16 +68,15 @@ define(["Q", "./dispatcher", "data-source", "abstract-source", './journal-list']
 
     popup.appendTo('body');
 
-    top = Math.max(20, coords.barPos.top - 10 - popup.height());
+    top = Math.max(20, coords.y - 10 - popup.height());
+    left = Math.max(20, coords.x - (popup.width() * 0.5) + 20);
     popup.css({
       position: "absolute",
       top: top,
-      left: Math.max(20, coords.barPos.left + (coords.barWidth / 2) - (popup.width() / 2))
+      left: left
     });
 
-    if ((top + popup.height()) < coords.barPos.top) {
-      popup.addClass("arrowed");
-    }
+    popup.addClass("arrowed");
 
     popup.click(popup.remove.bind(popup));
 
@@ -96,6 +95,10 @@ define(["Q", "./dispatcher", "data-source", "abstract-source", './journal-list']
       });
       d3.select(window).on("keydown", this.onKeydown.bind(this));
       dispatcher.on("page-chart", this.pageChart.bind(this));
+      dispatcher.on("rescale-y", function () {
+        self._maxY = 0;
+        self.refreshChart();
+      });
     },
 
     render: function () {
@@ -104,9 +107,10 @@ define(["Q", "./dispatcher", "data-source", "abstract-source", './journal-list']
     },
 
     refreshChart: function () {
-      var termsWere = this.priorState.terms;
+      var termsWere = (this.priorState.terms || []).join(',')
+        , termsAre = this.model.get('terms').join(',');
       clearPopups();
-      if (termsWere && termsWere.join(',') == this.model.get("terms").join(',')) {
+      if (termsWere === termsAre) {
         this.updateYears();
       } else {
         this.updateChart();
@@ -142,6 +146,7 @@ define(["Q", "./dispatcher", "data-source", "abstract-source", './journal-list']
         var term = self.model.get('terms')[i];
         var year = d3.select(this.parentElement).datum()[0];
         var coords = {
+          yearX: self.getXScale()(year),
           x: d3.event.pageX,
           y: d3.event.pageY,
           barWidth: $(this).width(),
@@ -353,7 +358,7 @@ define(["Q", "./dispatcher", "data-source", "abstract-source", './journal-list']
 
       texts = pubYears.selectAll("text").data(function (row) { return [row[0]]; });
       texts.enter().append("text").attr('y', dims.height - 4);
-      texts.text(_.identity);
+      texts.text(_.identity).attr('opacity', (barWidth < 20) ? 0 : 1); // hide when cramped.
     },
 
     updateYears: function updateYears () {
