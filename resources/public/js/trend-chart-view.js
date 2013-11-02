@@ -186,7 +186,7 @@ define(["Q", "./dispatcher", "data-source", "abstract-source", './journal-list']
 
     positionYearGroup: function (sel) {
       var x = this.getXScale()
-        , f = _.compose(slideTempl, asObj('x'), x, first);
+       , f = _.compose(slideTempl, asObj('x'), x, first);
 
       return sel.append("g")
                 .attr("class", "pubyear")
@@ -280,17 +280,21 @@ define(["Q", "./dispatcher", "data-source", "abstract-source", './journal-list']
     },
 
     getBarWidth: function () {
-      var nBars = rest(this.data[0]).length;
-      return (Math.floor(this.getDimensions().width / this.data.length) - 1) / nBars;
+      var nBars = rest(this.data[0]).length
+        , width = this.getDimensions().width
+        , nRows = this.data.length + 1
+        , groupW = Math.floor(width / nRows) - 1;
+      return Math.floor(groupW / nBars);
     },
 
     getXScale: function () {
-        var halfBar = this.getBarWidth() / 2
+        var nBars = rest(this.data[0]).length
+          , bw = this.getBarWidth()
           , dims = this.getDimensions()
           , start = this.model.get('start')
           , end = this.model.get('end');
         return d3.scale.linear()
-                 .range([halfBar, dims.width - halfBar])
+                 .range([bw, dims.width - (bw * nBars)])
                  .domain([start, end]);
     },
 
