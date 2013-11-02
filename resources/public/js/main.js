@@ -39,8 +39,9 @@ define(["./trend", "./trend-view", "./trend-chart-view", "./dispatcher", "./mess
         , elemId = '#' + command;
         $(elemId).click(function (evt) {
           var state = model.toJSON()
-            , width = state.end - state.start
-            , delta = Math.floor((direction === 'out') ? (width / 2) : (-width / 3));
+            , width = state.end - state.start + 1
+            , round = (direction === 'out') ? Math.ceil : Math.floor
+            , delta = round((direction === 'out') ? (width / 2) : (-width / 3));
           console.log(delta);
           state.start = Math.max(Trend.MIN, state.start - delta);
           state.end = Math.min(Trend.MAX, state.end + delta);
