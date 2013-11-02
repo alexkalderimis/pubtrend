@@ -136,7 +136,7 @@ define(["Q", "./dispatcher", "data-source", "abstract-source", './journal-list']
     }},
 
     getBarColour: function (d, i) {
-      var scale = (this._barScale || (this._barScale = d3.scale.category20b()));
+      var scale = (this._barScale || (this._barScale = d3.scale.category20()));
       return scale(i);
     },
 

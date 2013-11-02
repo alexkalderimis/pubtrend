@@ -49,11 +49,11 @@ nav h1 {
 }
 
 rect {
-  fill-opacity: .4;
+  fill-opacity: .9;
 }
 
 rect:first-child {
-  fill-opacity: .5;
+  fill-opacity: .9;
 }
 
 .popup {
@@ -89,5 +89,9 @@ rect:first-child {
 .journal td.key {
     font-weight: bold;
     background: #efefef;
+}
+
+#instructions a {
+    text-decoration: underline;
 }
 

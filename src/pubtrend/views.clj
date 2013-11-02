@@ -73,7 +73,7 @@
       [:div {:class "callout panel" :id "instructions"}
        [:h3 "Trend Parameters"]
        [:p "This application shows the number of publications published per year
-           matching given search terms as reported by"
+           matching given search terms as reported by "
            [:a {:href "http://www.ncbi.nlm.nih.gov/pubmed"} "pubmed"]]
        [:p "Adjust the trend parameters here. You can search for one or
             more terms over a given period, up to the present day. Change
