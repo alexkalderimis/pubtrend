@@ -42,7 +42,7 @@ define(function () {
             row.remove(); // not in model, just UI.
           } else {
             terms.splice(idx, 1); // Remove this term from model
-            self.model.set('terms', terms)
+            self.model.set({terms: terms});
           }
         });
       }
