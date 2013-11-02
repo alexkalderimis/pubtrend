@@ -36,10 +36,19 @@
       (http/GET *client* uri :query params :headers headers)))
 
 ;; Returns a future for an integer.
+(def counts (atom {}))
+
 (defn get-count* [term year]
   (future (-> (do-req term year) http/await http/string read-count)))
 
-(def get-count (memoize get-count*))
+;; Specialized memoise - don't cache on error.
+(defn get-count [& args]
+  (future 
+    (if-let [e (find @counts args)]
+            (val e)
+            (let [ret @(apply get-count* args)]
+              (swap! counts assoc args ret)
+                ret))))
 
 (defn get-trend
   [term years]
