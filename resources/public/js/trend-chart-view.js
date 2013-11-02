@@ -386,7 +386,7 @@ define(["Q", "./dispatcher", "data-source", "abstract-source", './journal-list']
 
     getNextState: function (direction) {
       var opts = this.model.toJSON()
-        , incr = 5;
+        , incr = Math.ceil(this.data.length / 3);
       if (direction == "earlier") {
           opts.start = opts.start - incr;
           opts.end = opts.end - incr;
