@@ -1,0 +1,33 @@
+<div class="modal-header">
+  <a class="close-reveal-modal close">close</a>
+  <h3>
+    Publications matching <i><%- term %></i> in <%- year %>
+  </h3>
+</div>
+<div class="modal-body">
+  <p>Showing publications <%= offset + 1 %> to <%= limit + offset %>
+   of <%= count %></p>
+  <section class="row">
+    <form>
+        <label>
+            <span>Map</span>
+            <input type="radio" name="view" value="map">
+        </label>
+        <label>
+            <span>Abstracts</span>
+            <input type="radio" name="view" value="abstracts">
+        </label>
+        <label>
+            <span>Journals</span>
+            <input type="radio" name="view" value="journals">
+        </label>
+     </form>
+  </section>
+  <div class="journals">
+      <span class="loading">Loading...</span>
+  </div>
+  <button class="get-more small button">More</button>
+</div>
+<div class="modal-footer right">
+  <a href="#" class="button left ok success close">close</a>
+</div>

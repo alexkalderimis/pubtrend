@@ -1,0 +1,44 @@
+<div class="row">
+    <div class="small-4 columns">
+        <table class="journal-details">
+        <tbody>
+            <tr>
+                <td class="key">title</td>
+                <td class="val"><%- title %></th>
+            </tr>
+            <tr>
+                <td class="key">journal</td>
+                <td class="val">
+                    <i><%- journal.title %></i>
+                    &nbsp;
+                    (<%- journal.issue %> <%- journal.volume %>)
+                </td>
+            </tr>
+            <tr>
+                <td class="key">affiliation</td>
+                <td class="val"><%- affiliation %></td>
+            </tr>
+            <tr>
+                <td class="key">date</td>
+                <td class="val"><%- month %> <%- year %></td>
+            </tr>
+            <tr>
+                <td class="key">first author</td>
+                <td class="val">
+                    <%- authors[0].foreName %> <%- authors[0].lastName %>
+                </td>
+            </tr>
+        </tbody>
+        </table>
+    </div>
+    <div class="small-8 columns">
+        <% if (abstract) { %>
+            <p class="abstract"><%- abstract %></p>
+        <% } else { %>
+            <i>No abstract available</i>
+        <% } %>
+        <% if (copyright) { %>
+            <span class="copyright">Copyright <%- copyright %></span>
+        <% } %>
+    </div>
+</div>
