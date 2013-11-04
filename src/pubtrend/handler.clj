@@ -1,5 +1,6 @@
 (ns pubtrend.handler
   (:use compojure.core
+        clojure.tools.logging
         [clojure.string :only (split)])
   (:require [pubtrend.data :as data]
             [pubtrend.views :as views]
@@ -13,30 +14,31 @@
 
 (def to-json json/generate-string)
 
+(defn serve [data]
+    {:status 200
+     :headers api-headers
+     :body (to-json data)})
+
 (defn disease-trend
   ([term start end]
     (let [years (range (Integer/valueOf start) (inc (Integer/valueOf end)))]
       (disease-trend term years)))
   ([term years]
-   (let [trend (data/get-trend term years)]
-    {:status 200
-     :headers api-headers
-     :body (json/generate-string trend)})))
+   (-> term (data/get-trend years) serve)))
 
 (defn citation-records [term year]
-  (let [cits (data/citations-with-locations term year)]
-    {:status 200
-     :headers api-headers
-     :body (json/generate-string cits)}))
+  (-> (data/get-citations term year) serve))
 
 (def one-year #"\d{4}")
 (def multi-year #"(\d{4}-)*\d{4}")
 
-(defroutes app-routes
-  (GET "/" [] (views/index))
+(defroutes api-routes
   (GET ["/disease/:term/:start/:end" :start one-year :end one-year]
        [term start end]
-       (disease-trend term start end))
+         (disease-trend term start end))
+  (GET ["/disease/:term/:year" :year one-year]
+       [term year]
+         (disease-trend term [year]))
   (GET ["/disease/:term/:years" :years multi-year]
        [term years]
        (let [years (split years #"-")]
@@ -44,8 +46,14 @@
   (GET ["/citations/:term/:year" :year one-year]
        [term year]
          (citation-records term year))
+  (GET "/location" {params :query-params}
+       (-> "address" params data/get-location deref serve)))
+
+(defroutes site-routes
+  (GET "/" [] (views/index))
   (route/resources "/")
   (route/not-found "Not Found"))
 
-(def app
-  (handler/site app-routes))
+(def app (routes
+  (handler/api api-routes)
+  (handler/site site-routes)))
