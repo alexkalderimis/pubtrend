@@ -131,11 +131,11 @@
      :abstract abstract :pmid pmid :authors authors
      :journal journal :affiliation affiliation}))
 
-(defn get-citations [entry]
+(defn parse-citations [entry]
   (cons (parse-citation entry)
         (lazy-seq
           (when-let [nxt (zip/right entry)]
-            (get-citations nxt)))))
+            (parse-citations nxt)))))
 
 (defn strip-email-addresses [s]
   (.replaceAll s "\\S+@\\S+" ""))
@@ -167,6 +167,8 @@
 (def nil-location {})
 
 ;; Returns a future for a location.
+;; Google is strict about geocoding limit, so try to get this
+;; from a local persisted cache where possible.
 (defn get-location [address]
   (future
     (if-not address
@@ -186,12 +188,9 @@
         map-fn (fn [cit] (future (assoc cit :location @(get-loc cit))))]
     (map map-fn citations)))
 
-(defn citations-with-locations
+(defn get-citations
   [term year]
   (let [ids (get-ids term year)
         pubxml (get-pubs ids)
-        pubentry (zip/down (zip-str pubxml))
-        citations (get-citations pubentry)
-        with-locs (add-locs citations)]
-    (doall (map deref with-locs))))
-
+        pubentry (zip/down (zip-str pubxml))]
+    (doall (parse-citations pubentry))))
