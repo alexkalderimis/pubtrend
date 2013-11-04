@@ -1,5 +1,6 @@
 (ns pubtrend.persistence
-  (require [clojure.java.jdbc :as jdbc]
+  (require [clojure.java.jdbc     :as jdbc]
+           [clojure.java.jdbc.sql :as s]
            [clojure.java.jdbc.ddl :as ddl]))
 
 (def o (Object.))
@@ -33,3 +34,9 @@
                         [:address "text"]
                         [:lat "double"]
                         [:lng "double"]))))
+
+(defn dump-db []
+  (init-db)
+  (let [res (jdbc/query dbspec (s/select * :locations))]
+    (doseq [{adr :address lat :lat lng :lng} res]
+      (println (format "%s\t%f\t%f" adr lat lng)))))
