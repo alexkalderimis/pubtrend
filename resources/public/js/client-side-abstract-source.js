@@ -13,6 +13,35 @@ define(['Q'], function(Q) {
     return child ? child.textContent : null;
   };
 
+  var parseAuthor = function (elem) {
+    var ret = {};
+    ret.foreName = tagProp(elem, 'ForeName');
+    ret.lastName = tagProp(elem, 'LastName');
+    return ret;
+  };
+
+  var parseCitation = function (art) {
+    var ret = {journal: {}}
+      , journalInfo    = art.getElementsByTagName('Journal')[0]
+      , journalIssue   = art.getElementsByTagName('JournalIssue')[0]
+      , dateInfo       = art.getElementsByTagName('PubDate')[0]
+      , abstractInfo   = art.getElementsByTagName('Abstract')[0]
+      , authors        = art.getElementsByTagName('Author');
+
+    ret.title          = tagProp(art, 'ArticleTitle');
+    ret.affiliation    = tagProp(art, 'Affiliation');
+    ret.year           = tagProp(dateInfo, 'Year');
+    ret.month          = tagProp(dateInfo, 'Month');
+    ret.abstract       = tagProp(abstractInfo, 'AbstractText');
+    ret.copyright      = tagProp(abstractInfo, 'CopyrightInformation');
+    ret.authors        = [].map.call(authors, parseAuthor);
+    ret.journal.title  = tagProp(journalInfo, 'Title');
+    ret.journal.issue  = tagProp(journalIssue, 'Issue');
+    ret.journal.volume = tagProp(journalIssue, 'Volume');
+
+    return ret;
+  };
+
   /**
    * Process a pubmed medline citation result set and produce article
    * data objects.
@@ -20,27 +49,7 @@ define(['Q'], function(Q) {
    */
   var extractAbstracts = function (doc) {
     var articles = [].slice.call(doc.getElementsByTagName('Article'));
-    return articles.map(function (art) {
-      var ret = {journal: {}}
-        , journalInfo    = art.getElementsByTagName('Journal')[0]
-        , journalIssue   = art.getElementsByTagName('JournalIssue')[0]
-        , dateInfo       = art.getElementsByTagName('PubDate')[0]
-        , abstractInfo   = art.getElementsByTagName('Abstract')[0]
-        , a0             = art.getElementsByTagName('Author')[0];
-
-      ret.title          = tagProp(art, 'ArticleTitle');
-      ret.affiliation    = tagProp(art, 'Affiliation');
-      ret.year           = tagProp(dateInfo, 'Year');
-      ret.month          = tagProp(dateInfo, 'Month');
-      ret.abstract       = tagProp(abstractInfo, 'AbstractText');
-      ret.copyright      = tagProp(abstractInfo, 'CopyrightInformation');
-      ret.firstAuthor    = tagProp(a0, 'ForeName') + ' ' + tagProp(a0, 'LastName');
-      ret.journal.title  = tagProp(journalInfo, 'Title');
-      ret.journal.issue  = tagProp(journalIssue, 'Issue');
-      ret.journal.volume = tagProp(journalIssue, 'Volume');
-
-      return ret;
-    });
+    return articles.map(parseCitation);
   };
 
   /**

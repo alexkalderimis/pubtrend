@@ -1,5 +1,12 @@
 // Assumes non require loading of d3, Backbone and underscore.
-define(["Q", "./dispatcher", "data-source", "abstract-source", './journal-list', './http', './distribution-map'],
+define([
+    "Q",
+    "./dispatcher",
+    "data-source",
+    "abstract-source",
+    './journal-list',
+    './http',
+    './distribution-map'],
     function(Q, dispatcher, getData, getAbstracts,
       JournalList, http, GlobalDistributionMap) {
 
@@ -121,8 +128,21 @@ define(["Q", "./dispatcher", "data-source", "abstract-source", './journal-list',
         , t = terms[0] // just one for now.
         , y = this.model.get('start')
         , url = _.template("/citations/<%= term %>/<%= year %>", {term: t, year: y});
+      // Ok to get-data - coming straight from cache.
+      getData({term: t, start: y, end: y}).then(function (res) {
+        var model = new Backbone.Model({
+          term: t,
+          year: y,
+          count: res[0][1],
+          offset: 0,
+          limit: 50,
+          view: 'abstracts'
+        });
+        var jl = new JournalList({model: model});
+        jl.show();
+      });
 
-      http.getJSON(url).then(this.drawGlobalDistributionMap.bind(this));
+      // http.getJSON(url).then(this.drawGlobalDistributionMap.bind(this));
     },
 
     drawGlobalDistributionMap: function (citations) {

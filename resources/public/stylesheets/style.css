@@ -78,8 +78,22 @@ rect {
 }
 
 .journals {
-    list-style-type: none;
     margin: 0;
+    width: 100%;
+}
+.journals ul {
+    list-style-type: none;
+}
+.journals .loading {
+    font-size: 32px;
+    text-transform: uppercase;
+    color: #ccc;
+}
+.journal-list form label {
+    display: inline-block;
+}
+.abstract {
+    font-size: 0.8em;
 }
 
 .modal .map {
