@@ -18,6 +18,17 @@ define(['./dispatcher'], function (dispatcher) {
         return dispatcher.trigger("Trend:rejected-values", this, start, end);
       }
       return Backbone.Model.prototype.set.call(this, attrs, opts);
+    },
+
+    width: function () {
+      var start = this.attributes.start
+        , end = this.attributes.end;
+
+      if (start && end) {
+        return end + 1 - start;
+      } else {
+        return null;
+      }
     }
 
   });

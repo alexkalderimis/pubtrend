@@ -1,4 +1,4 @@
-define(['Q', './results-cache'], function (Q, resultsCache) {
+define(['Q', './results-cache', './http'], function (Q, resultsCache, http) {
 
   var trendUrlTempl = _.template("/disease/<%= term %>/<%= years %>");
 
@@ -25,22 +25,9 @@ define(['Q', './results-cache'], function (Q, resultsCache) {
     var url = getTrendUrl(opts)
       , addToCache = resultsCache.addToCache(opts)
       , serveWithHits = resultsCache.serveWithCacheHits(opts)
-      , def = Q.defer();
+      , promise = (url) ? http.getJSON(url) : Q([]);
 
-    if (url) {
-      $.ajax({
-        type: "GET",
-        url: url,
-        dataType: "json",
-        error: def.reject.bind(def),
-        success: def.resolve.bind(def)
-      });
-    } else {
-      console.log("Full cache hit");
-      def.resolve([]);
-    }
-
-    return def.promise.then(addToCache).then(serveWithHits);
+    return promise.then(addToCache).then(serveWithHits);
   };
 
   return getData;

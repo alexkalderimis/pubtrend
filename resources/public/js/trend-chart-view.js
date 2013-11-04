@@ -1,6 +1,7 @@
 // Assumes non require loading of d3, Backbone and underscore.
-define(["Q", "./dispatcher", "data-source", "abstract-source", './journal-list'],
-    function(Q, dispatcher, getData, getAbstracts, JournalList) {
+define(["Q", "./dispatcher", "data-source", "abstract-source", './journal-list', './http', './distribution-map'],
+    function(Q, dispatcher, getData, getAbstracts,
+      JournalList, http, GlobalDistributionMap) {
 
   // Utilities, helpers, constants, etc.
   var CURRENT_YEAR = (new Date()).getUTCFullYear();
@@ -102,18 +103,102 @@ define(["Q", "./dispatcher", "data-source", "abstract-source", './journal-list']
     },
 
     render: function () {
-      this.updateChart();
+      this.refreshChart();
       return this;
     },
 
+    clearBrush: function () {
+      if (this.brush) {
+        // Clear and redraw.
+        d3.select(".brush").call(this.brush.clear())
+                           .selectAll('rect.background')
+                             .attr('width', this.getDimensions().width);
+      }
+    },
+
+    drawDetailedAnalysis: function () {
+      var terms = this.model.get('terms')
+        , t = terms[0] // just one for now.
+        , y = this.model.get('start')
+        , url = _.template("/citations/<%= term %>/<%= year %>", {term: t, year: y});
+
+      http.getJSON(url).then(this.drawGlobalDistributionMap.bind(this));
+    },
+
+    drawGlobalDistributionMap: function (citations) {
+      var model = new Backbone.Model({
+        term: this.model.get('terms')[0],
+        year: this.model.get('start'),
+        offset: 'unknown',
+        limit: 'unknown',
+        count: 'unknown'
+      });
+      var collection = new Backbone.Collection(citations);
+      var view = new GlobalDistributionMap({model: model, collection: collection});
+      view.show();
+    },
+
+    drawJournalPieChart: function (citations) {
+      var svg = this.mainGroup
+        , dims = this.getDimensions()
+        , radius = Math.min(dims.width, dims.height) / 2
+        , halfW = dims.width / 2
+        , halfH = dims.height / 2
+        , colour = d3.scale.category20c()
+      var data = d3.nest()
+                    .key(function (d) { return d.journal })
+                    .rollup(function (leaves) { return leaves.length })
+                    .map(citations, d3.map);
+
+      var pie = d3.layout.pie().value(function (d) { return data.get(d) });
+      var arc = d3.svg.arc().innerRadius(radius * 0.3)
+                            .outerRadius(radius * 0.9);
+      
+      var detailG = svg.append('g')
+                        .attr('class', 'details')
+                        .attr('transform', 'translate(' + halfW + ',' + halfH + ')');
+
+      var path = detailG.selectAll('path').data(pie(data.keys()));
+
+      svg.selectAll('.years').attr('opacity', 0.125);
+
+      path.enter().append("path")
+                  .attr('fill', function (d) { return colour(d.data); })
+                .append('title')
+                  .text(function (d) { return d.data + ' (' + d.value + ')'});
+
+      path.transition().duration(750).attrTween('d', arcTween);
+
+      function arcTween (d, i) {
+        var f = d3.interpolate({startAngle: 0, endAngle: 0}, d);
+        return function (time) { return arc(f(time)); };
+      }
+    },
+
+    clearDetails: function () {
+
+    },
+
     refreshChart: function () {
-      var termsWere = (this.priorState.terms || []).join(',')
+      var action
+        , termsWere = (this.priorState.terms || []).join(',')
         , termsAre = this.model.get('terms').join(',');
+
       clearPopups();
-      if (termsWere === termsAre) {
+      this.clearBrush();
+      this.clearDetails();
+
+      if (termsWere.length && termsWere === termsAre) {
+        action = this.onUpdate;
         this.updateYears();
       } else {
-        this.updateChart();
+        action = this.drawChart;
+      }
+
+      var fetching = this.fetchData()
+      fetching.then(action.bind(this));
+      if (this.model.width() === 1) {
+        fetching.then(this.drawDetailedAnalysis.bind(this));
       }
       this.priorState = this.model.toJSON();
     },
@@ -269,10 +354,6 @@ define(["Q", "./dispatcher", "data-source", "abstract-source", './journal-list']
       return ret;
     },
       
-    updateChart: function updateChart () {
-      this.fetchData().then(this.drawChart.bind(this));
-    },
-
     getBarHeight: function (d) {
       var dims = this.getDimensions()
         , y = this.getYScale();
@@ -294,7 +375,7 @@ define(["Q", "./dispatcher", "data-source", "abstract-source", './journal-list']
           , start = this.model.get('start')
           , end = this.model.get('end');
         return d3.scale.linear()
-                 .range([bw, dims.width - (bw * nBars)])
+                 .range([bw / 2, dims.width - (bw * nBars)])
                  .domain([start, end]);
     },
 
@@ -313,6 +394,14 @@ define(["Q", "./dispatcher", "data-source", "abstract-source", './journal-list']
                        .domain([0, maxY])
     },
 
+    zoomToBrush: function () {
+      if (this.brush.empty()) return;
+      var extent = this.brush.extent()
+        , start = Math.ceil(extent[0])
+        , end = Math.floor(extent[1]);
+      this.model.set({start: start, end: end});
+    },
+
     onUpdate: function (data) {
       var pubYears, bars, texts
         , currentState = this.model.toJSON()
@@ -323,6 +412,15 @@ define(["Q", "./dispatcher", "data-source", "abstract-source", './journal-list']
         , barWidth = this.getBarWidth()
         , nBars = rest(this.data[0]).length
         , height = this.getBarHeight.bind(this);
+
+      this.brush.x(x);
+      if (this.data.length === 1) {
+        d3.selectAll('.brush')
+          .selectAll('rect').attr('height', 0);
+      } else {
+        d3.selectAll('.brush')
+          .selectAll('rect').attr('height', dims.height);
+      }
       
       this.mainGroup.call(this.addYAxis.bind(this));
 
@@ -366,7 +464,6 @@ define(["Q", "./dispatcher", "data-source", "abstract-source", './journal-list']
     },
 
     updateYears: function updateYears () {
-      this.fetchData(currentState).then(this.onUpdate.bind(this));
       var currentState = this.model.toJSON()
         , filtered = this.data.filter(function (datum) {
             var year = datum[0];
@@ -419,7 +516,7 @@ define(["Q", "./dispatcher", "data-source", "abstract-source", './journal-list']
 
     drawChart: function (results) {
       this.$el.empty();
-      var svg, yearGroups, pubYears;
+      var svg, yearGroups, pubYears, brush, self = this;
 
       svg = this.getMainGroup();
       this.mainGroup = svg;
@@ -432,6 +529,10 @@ define(["Q", "./dispatcher", "data-source", "abstract-source", './journal-list']
       this.addTitle(svg);
       this.addYAxis(svg);
 
+      this.brush = brush = d3.svg.brush()
+                .x(this.getXScale())
+                .on("brushend", this.zoomToBrush.bind(this));
+
       // Move into position.
       pubYears.enter().call(this.positionYearGroup.bind(this));
 
@@ -440,6 +541,15 @@ define(["Q", "./dispatcher", "data-source", "abstract-source", './journal-list']
 
       // Add labels
       pubYears.call(this.addYearLabels.bind(this));
+
+      var dims = this.getDimensions();
+      var bg = svg.append("g")
+         .attr("class", "x brush")
+         .call(brush);
+      bg.selectAll("rect")
+          .attr("y", 0)
+          .attr("height", dims.height);
+      bg.selectAll('rect.background').attr('width', dims.width);
 
       window.focus();
     }

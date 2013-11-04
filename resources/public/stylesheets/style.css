@@ -52,10 +52,6 @@ rect {
   fill-opacity: .9;
 }
 
-rect:first-child {
-  fill-opacity: .9;
-}
-
 .popup {
     background: #fefefe;
     max-width: 200px;
@@ -86,6 +82,11 @@ rect:first-child {
     margin: 0;
 }
 
+.modal .map {
+    width: 100%;
+    height: 450px;
+}
+
 .journal td.key {
     font-weight: bold;
     background: #efefef;
@@ -93,5 +94,12 @@ rect:first-child {
 
 #instructions a {
     text-decoration: underline;
+}
+
+.brush .extent {
+  stroke: #fff;
+  fill: #555;
+  fill-opacity: .125;
+  shape-rendering: crispEdges;
 }
 

@@ -28,11 +28,12 @@
     [:input attrs]))
 
 (def vendor-scripts [
-                     "/vendor/zepto.js"
-                     "/vendor/underscore/underscore-min.js"
-                     "/vendor/backbone/backbone-min.js"
-                     "/vendor/foundation.min.js"
-                     "/js/d3.v3.js"])
+    "/vendor/zepto.js"
+    "/vendor/underscore/underscore-min.js"
+    "/vendor/backbone/backbone-min.js"
+    "/vendor/foundation.min.js"
+    "https://maps.googleapis.com/maps/api/js?key=AIzaSyAqbdvFK7AfEqcctv9LHYNTy2xIFLo4n5g&sensor=false"
+    "/js/d3.v3.js"])
 
 (defn common [title & body]
   (html5
@@ -109,7 +110,7 @@
    [:div {:class "small-3 columns"}
     [:button {:id "show-earlier" :class "small secondary button"}
      "See earlier"]]
-   [:div {:class "small-6 columns"}
+   [:div {:class "small-6 small-centred columns"}
     [:button {:id "zoom-in" :class "small secondary button"}
      "zoom in"]
     [:button {:id "zoom-out" :class "small secondary button"}
@@ -118,7 +119,7 @@
      "Rescale"]
     [:div {:id "messages"}]]
    [:div {:class "small-3 columns"}
-    [:button {:id "show-later" :class "small secondary button"}
+    [:button {:id "show-later" :class "right small secondary button"}
      "See later"]]])
 
 (def chart-container 

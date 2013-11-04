@@ -5,6 +5,8 @@
                  [org.clojure/tools.logging "0.2.3"]
                  [compojure "1.1.5"]
                  [hiccup "1.0.4"]
+                 [org.clojure/java.jdbc "0.3.0-alpha5"]
+                 [org.xerial/sqlite-jdbc "3.7.2"]
                  [cheshire "5.2.0"]
                  [org.slf4j/slf4j-simple "1.7.5"]
                  [http.async.client "0.5.2"]]
