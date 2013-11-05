@@ -22,6 +22,24 @@
      (f)
      (catch Exception e (when (< cur n) (retry n f (inc cur)))))))
 
+(defn strip-email-addresses [s]
+  (.replaceAll s "\\S+@\\S+" ""))
+
+(defn normalize-spaces [s]
+  (.replaceAll s "\\s\\s+" " "))
+
+(defn strip-e-address [s]
+  (.replaceAll s "Electronic address:" ""))
+
+(defn normalize-address [address]
+  (when address
+    (-> address
+        strip-email-addresses
+        strip-e-address
+        normalize-spaces
+        (.trim))))
+
+
 (defn get-location [address]
   (let [normed (normalize-address address)]
     (retry 3 (fn [] (first (jdbc/query dbspec [get-loc-sql normed]))))))
@@ -38,19 +56,6 @@
                         [:lat "double"]
                         [:lng "double"]))))
 
-(defn strip-email-addresses [s]
-  (.replaceAll s "\\S+@\\S+" ""))
-
-(defn normalize-spaces [s]
-  (.replaceAll s "\\s\\s+" " "))
-
-(defn normalize-address [address]
-  (when address
-    (-> address
-        strip-email-addresses
-        normalize-spaces
-        (.trim))))
-
 (defn dump-db []
   (init-db)
   (let [res (jdbc/query dbspec (s/select * :locations))]
@@ -60,7 +65,7 @@
 (defn- parse-line [line]
   (let [to-dbl #(if (= "null" %) nil (Double/parseDouble %))
         [adr-s lat-s lng-s] (clojure.string/split line #"\t")
-        adr (normalize-address adr)
+        adr (normalize-address adr-s)
         lat (to-dbl lat-s)
         lng (to-dbl lng-s)]
     [adr lat lng]))
