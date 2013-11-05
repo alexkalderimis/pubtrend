@@ -5,8 +5,14 @@
   </h3>
 </div>
 <div class="modal-body">
-  <p>Showing publications <%= offset + 1 %> to <%= limit + offset %>
-   of <%= count %></p>
+  <section class="row">
+    <p class="summary">
+        Showing publications
+        <span class="first-ord"><%= offset + 1 %></span>
+        to <span class="end-ord"><%= limit + offset %></span>
+        of <%= count %>
+    </p>
+  </section>
   <section class="row">
     <form>
         <label>
