@@ -137,18 +137,6 @@
           (when-let [nxt (zip/right entry)]
             (parse-citations nxt)))))
 
-(defn strip-email-addresses [s]
-  (.replaceAll s "\\S+@\\S+" ""))
-
-(defn normalize-spaces [s]
-  (.replaceAll s "\\s\\s+" " "))
-
-(defn normalize-affil [affil]
-  (when affil
-    (-> affil
-        strip-email-addresses
-        normalize-spaces
-        (.trim))))
 
 (defn get-location* [address]
   (future 
@@ -173,18 +161,19 @@
   (future
     (if-not address
       nil-location
-      (let [normed (normalize-affil address)]
+      (do
         (when-not @db-connected (do (persist/init-db)
                                     (swap! db-connected (constantly true))))
-        (if-let [loc (persist/get-location normed)]
+        (if-let [loc (persist/get-location address)]
           loc
-          (let [fetched (or @(get-location* normed) nil-location)]
-            (persist/save-location normed fetched)
+          (let [normed (persist/normalize-address address)
+                fetched (or @(get-location* normed) nil-location)]
+            (persist/save-location address fetched)
             fetched))))))
 
 ;; Returns a list of futures of citations
 (defn add-locs [citations]
-  (let [get-loc (comp get-location normalize-affil :affiliation)
+  (let [get-loc (comp get-location :affiliation)
         map-fn (fn [cit] (future (assoc cit :location @(get-loc cit))))]
     (map map-fn citations)))
 

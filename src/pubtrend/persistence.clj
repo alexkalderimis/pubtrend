@@ -23,10 +23,11 @@
      (catch Exception e (when (< cur n) (retry n f (inc cur)))))))
 
 (defn get-location [address]
-  (retry 3 (fn [] (first (jdbc/query dbspec [get-loc-sql address])))))
+  (let [normed (normalize-address address)]
+    (retry 3 (fn [] (first (jdbc/query dbspec [get-loc-sql normed]))))))
 
 (defn save-location [address {lat :lat lng :lng}]
-  (locking o (jdbc/insert! dbspec :locations nil [address lat lng])))
+  (locking o (jdbc/insert! dbspec :locations nil [(normalize-address address) lat lng])))
 
 (defn init-db []
   (if (.createNewFile db-file)
@@ -37,15 +38,29 @@
                         [:lat "double"]
                         [:lng "double"]))))
 
+(defn strip-email-addresses [s]
+  (.replaceAll s "\\S+@\\S+" ""))
+
+(defn normalize-spaces [s]
+  (.replaceAll s "\\s\\s+" " "))
+
+(defn normalize-address [address]
+  (when address
+    (-> address
+        strip-email-addresses
+        normalize-spaces
+        (.trim))))
+
 (defn dump-db []
   (init-db)
   (let [res (jdbc/query dbspec (s/select * :locations))]
     (doseq [{adr :address lat :lat lng :lng} res]
-      (println (format "%s\t%f\t%f" adr lat lng)))))
+      (println (format "%s\t%f\t%f" (normalize-address adr) lat lng)))))
 
 (defn- parse-line [line]
   (let [to-dbl #(if (= "null" %) nil (Double/parseDouble %))
-        [adr lat-s lng-s] (clojure.string/split line #"\t")
+        [adr-s lat-s lng-s] (clojure.string/split line #"\t")
+        adr (normalize-address adr)
         lat (to-dbl lat-s)
         lng (to-dbl lng-s)]
     [adr lat lng]))
