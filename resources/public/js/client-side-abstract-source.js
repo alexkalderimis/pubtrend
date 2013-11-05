@@ -47,10 +47,11 @@ define(['Q'], function(Q) {
    * data objects.
    * :: (Document) -> Array<Journal>
    */
-  var extractAbstracts = function (doc) {
-    var articles = [].slice.call(doc.getElementsByTagName('Article'));
-    return articles.map(parseCitation);
-  };
+  var extractAbstracts = function (term) { return function (doc) {
+    var addTerm = function (x) { x.term = term; return x; }
+      , f = _.compose(addTerm, parseCitation);
+    return _.map(doc.getElementsByTagName('Article'), f);
+  }};
 
   /**
    * Read out the ids as strings :: (Document) -> Array<String>
@@ -97,7 +98,7 @@ define(['Q'], function(Q) {
   var getAbstracts = function (term, year, offset, limit) {
     var params
       , def = Q.defer()
-      , onSuccess = _.compose(def.resolve.bind(def), extractAbstracts)
+      , onSuccess = _.compose(def.resolve.bind(def), extractAbstracts(term))
       , gettingIds = getIds(term, year, offset, limit);
 
     gettingIds.then(function (ids) {

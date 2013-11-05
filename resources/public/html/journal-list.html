@@ -1,7 +1,12 @@
 <div class="modal-header">
   <a class="close-reveal-modal close">close</a>
   <h3>
-    Publications matching <i><%- term %></i> in <%- year %>
+    Publications matching
+    <% _.each(terms, function(term, i) { %>
+        <i><%- term %></i>
+        <% if (i + 1 < terms.length) { %>or<% } %>
+    <% }); %>
+    in <%- year %>
   </h3>
 </div>
 <div class="modal-body">

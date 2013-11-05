@@ -131,7 +131,7 @@ define([
       // Ok to get-data - coming straight from cache.
       getData({term: t, start: y, end: y}).then(function (res) {
         var model = new Backbone.Model({
-          term: t,
+          terms: terms.slice(),
           year: y,
           count: res[0][1],
           offset: 0,

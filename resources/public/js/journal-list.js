@@ -8,10 +8,17 @@ define([
     function(getAbstracts, Journal, http, html, marker_title) {
 
   var MAP_OPTS = {
-    center: new google.maps.LatLng(30.0, 10.0),
+    center: new google.maps.LatLng(20.0, 10.0),
     zoom: 2,
     mapTypeId: google.maps.MapTypeId.RoadMap
   };
+  var ICONS = [
+    'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+    'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
+    'http://maps.google.com/mapfiles/ms/icons/purple-dot.png',
+    'http://maps.google.com/mapfiles/ms/icons/yellow-dot.png',
+    'http://maps.google.com/mapfiles/ms/icons/green-dot.png'
+  ];
 
   var JournalList = Backbone.View.extend({
 
@@ -33,10 +40,11 @@ define([
           , offset = model.get('offset')
           , adj_os = offset + size
           , adj_lim = limit - size
-          , term = model.get('term')
           , year = model.get('year');
         self.$('.summary .end-ord').text(offset + limit);
-        getAbstracts(term, year, adj_os, adj_lim).then(addToCollection);
+        _.each(model.get('terms'), function (term) {
+          getAbstracts(term, year, adj_os, adj_lim).then(addToCollection);
+        });
       });
       model.on('change:view', function (model, view) {
         self.$('input[name="view"]').each(function () {
@@ -59,17 +67,18 @@ define([
     },
 
     getData: function () {
-        var i
-          , offset = this.model.get('offset')
+        var offset = this.model.get('offset')
           , limit = this.model.get('limit')
-          , term = this.model.get('term')
+          , terms = this.model.get('terms')
           , year = this.model.get('year')
           , addCitation = this.collection.add.bind(this.collection);
         // Fetch in parallel.
         this.collection.reset();
-        for (i = offset; i < offset + limit; i++) {
-          getAbstracts(term, year, i, 1).then(addCitation);
-        }
+        _.each(_.range(offset, offset + limit), function (i) {
+          _.each(terms, function (term) {
+            getAbstracts(term, year, i, 1).then(addCitation);
+          });
+        });
     },
 
     events: {
@@ -125,6 +134,10 @@ define([
 
     citationMarkerTitle: _.template(marker_title),
 
+    getIcon: function (term) {
+      return ICONS[this.model.get('terms').indexOf(term)];
+    },
+
     addMarker: function (citation) {
       if (!citation.has('affiliation')) return;
       var citationMarkerTitle = this.citationMarkerTitle;
@@ -137,6 +150,7 @@ define([
           position: new google.maps.LatLng(loc.lat, loc.lng),
           title: citationMarkerTitle(citation.toJSON())
         });
+        marker.setIcon(self.getIcon(citation.get('term')));
         marker.setMap(map);
         self._markers++;
         self.$('.marker-count').text(self._markers + " locations found");
