@@ -173,13 +173,13 @@
   (future
     (if-not address
       nil-location
-      (do
+      (let [normed (normalize-affil address)]
         (when-not @db-connected (do (persist/init-db)
                                     (swap! db-connected (constantly true))))
-        (if-let [loc (persist/get-location address)]
+        (if-let [loc (persist/get-location normed)]
           loc
-          (let [fetched (or @(get-location* address) nil-location)]
-            (persist/save-location address fetched)
+          (let [fetched (or @(get-location* normed) nil-location)]
+            (persist/save-location normed fetched)
             fetched))))))
 
 ;; Returns a list of futures of citations
