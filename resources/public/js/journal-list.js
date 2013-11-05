@@ -19,19 +19,26 @@ define([
 
     initialize: function () {
       var self = this
+        , model = this.model
         , collection = (this.collection || (this.collection = new Backbone.Collection))
         , addToCollection = collection.add.bind(collection);
-      if (!this.model.has('view')) this.model.set({view: 'map'});
-      this.model.on('change:offset', this.getData.bind(this));
-      this.model.on('change:limit', function (model, limit) {
+      self.initialWidth = model.get('limit');
+      if (!model.has('view')) model.set({view: 'map'});
+      model.on('change:offset', this.getData.bind(this));
+      model.on('change:offset', function (model, offset) {
+        self.$('.summary .start-ord').text(offset + 1);
+      });
+      model.on('change:limit', function (model, limit) {
         var size = collection.length
-          , offset = model.get('offset') + size
-          , limit = model.get('limit') - size
+          , offset = model.get('offset')
+          , adj_os = offset + size
+          , adj_lim = limit - size
           , term = model.get('term')
           , year = model.get('year');
-        getAbstracts(term, year, offset, limit).then(addToCollection);
+        self.$('.summary .end-ord').text(offset + limit);
+        getAbstracts(term, year, adj_os, adj_lim).then(addToCollection);
       });
-      this.model.on('change:view', function (model, view) {
+      model.on('change:view', function (model, view) {
         self.$('input[name="view"]').each(function () {
           var $r = $(this);
           $r.prop('checked', $r.val() === view);
@@ -42,7 +49,7 @@ define([
           default: throw new Error("Unknown view: " + view);
         }
       });
-      this.collection.on('add', function (citation) {
+      collection.on('add', function (citation) {
         switch(self.model.get('view')) {
           case 'map':       return self.addMarker(citation);
           case 'abstracts': return self.addAbstract(citation);
@@ -82,7 +89,7 @@ define([
         var offset = this.model.get('offset')
           , limit = this.model.get('limit');
         if (this.model.get('view') === 'map') {
-          this.model.set('limit', limit + limit);
+          this.model.set('limit', limit + this.initialWidth);
         } else {
           this.model.set('offset', offset + limit);
         }
@@ -122,6 +129,7 @@ define([
       if (!citation.has('affiliation')) return;
       var citationMarkerTitle = this.citationMarkerTitle;
       var map = this.map;
+      var self = this;
       http.getJSON('/location', {address: citation.get('affiliation')})
           .then(function (loc) {
         if (!loc || !(loc.lat && loc.lng) ) return;
@@ -130,14 +138,18 @@ define([
           title: citationMarkerTitle(citation.toJSON())
         });
         marker.setMap(map);
+        self._markers++;
+        self.$('.marker-count').text(self._markers + " locations found");
       });
     },
 
     showMap: function () {
       var self = this;
       var journals = this.$('.journals').empty();
+      self._markers = 0;
       var $elem = $('<div/>').addClass('map');
       journals.append($elem);
+      journals.append('<div><span class="label marker-count"></span></div>');
       this.map = new google.maps.Map($elem.get(0), MAP_OPTS);
       this.collection.each(this.addMarker.bind(this));
     },
