@@ -5,11 +5,13 @@
 
 (def o (Object.))
 
-(def db-file (java.io.File. "locations.db"))
+(def ^:dynamic db-file (java.io.File. "locations.db"))
 
-(def dbspec
-  (let [abs-path (.getAbsolutePath db-file)]
+(defn make-spec [file]
+  (let [abs-path (.getAbsolutePath file)]
     (str "jdbc:sqlite:/" abs-path)))
+
+(def ^:dynamic dbspec (make-spec db-file))
 
 (def get-loc-sql "SELECT lat, lng FROM locations WHERE address = ?")
 
@@ -40,3 +42,17 @@
   (let [res (jdbc/query dbspec (s/select * :locations))]
     (doseq [{adr :address lat :lat lng :lng} res]
       (println (format "%s\t%f\t%f" adr lat lng)))))
+
+(defn- parse-line [line]
+  (let [to-dbl #(if (= "null" %) nil (Double/parseDouble %))
+        [adr lat-s lng-s] (clojure.string/split line #"\t")
+        lat (to-dbl lat-s)
+        lng (to-dbl lng-s)]
+    [adr lat lng]))
+
+(defn load-db [rdr]
+  (init-db)
+  (doseq [lines (partition 100 (line-seq rdr))]
+    (let [to-insert (map parse-line lines)]
+      (apply jdbc/insert! dbspec :locations nil to-insert))))
+
