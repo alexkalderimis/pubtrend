@@ -33,7 +33,7 @@
     "/vendor/backbone/backbone-min.js"
     "/vendor/foundation.min.js"
     "https://maps.googleapis.com/maps/api/js?key=AIzaSyAqbdvFK7AfEqcctv9LHYNTy2xIFLo4n5g&sensor=false"
-    "/js/d3.v3.js"])
+    "/vendor/d3.v3.js"])
 
 (defn common [title & body]
   (html5
