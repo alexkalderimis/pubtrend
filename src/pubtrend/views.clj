@@ -132,5 +132,5 @@
           (trend-controls)
           (map with-utf8-charset
                (conj (apply include-js vendor-scripts)
-                     (entry-point "/js/client")))
+                     (entry-point "/js/client/boot")))
           (javascript-tag "$(document).foundation();")))
