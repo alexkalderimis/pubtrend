@@ -1,4 +1,4 @@
-define(['Q', './results-cache'], function (Q, resultsCache) {
+define(['Q', 'results-cache'], function (Q, resultsCache) {
 
   var ESEARCH = "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
     , tool = "pubtrend"

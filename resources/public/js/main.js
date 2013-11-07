@@ -1,7 +1,13 @@
 'use strict';
 
-define(["./trend", "./trend-view", "./trend-chart-view", "./dispatcher", "./messages"],
-  function (Trend, TrendView, TrendChartView, dispatcher, Messages) {
+define([
+    'dispatcher',
+    'models/trend',
+    'views/trend',
+    'views/trend-chart',
+    'views/messages'
+    ],
+  function (dispatcher, Trend, TrendView, TrendChartView, Messages) {
 
   var msgTemp = _.template("Invalid range: <%= start %> - <%= end %>");
     

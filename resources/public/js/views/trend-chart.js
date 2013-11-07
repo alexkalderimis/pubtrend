@@ -3,10 +3,11 @@ define([
     "Q",
     "data-source",
     "abstract-source",
-    "./dispatcher",
-    './journal-list',
-    './http',
-    './distribution-map'],
+    "dispatcher",
+    'views/journal-list',
+    'http',
+    'distribution-map'
+    ],
     function(Q, getData, getAbstracts, dispatcher,
       JournalList, http, GlobalDistributionMap) {
 

@@ -1,7 +1,7 @@
 define([
     'abstract-source',
-    './journal',
-    './http',
+    'views/journal',
+    'http',
     'text!/html/journal-list.html',
     'text!/html/marker-title.html'
     ],

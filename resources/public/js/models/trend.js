@@ -1,4 +1,4 @@
-define(['./dispatcher'], function (dispatcher) {
+define(['dispatcher'], function (dispatcher) {
 
   var Trend = Backbone.Model.extend({
 
