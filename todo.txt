@@ -1,1 +1,3 @@
 Don't load null locations - let them be re-resolved.
+Move to lodash
+Move all script loading to require, including backbone and d3
