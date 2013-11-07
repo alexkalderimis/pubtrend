@@ -1,13 +1,13 @@
 // Assumes non require loading of d3, Backbone and underscore.
 define([
     "Q",
-    "./dispatcher",
     "data-source",
     "abstract-source",
+    "./dispatcher",
     './journal-list',
     './http',
     './distribution-map'],
-    function(Q, dispatcher, getData, getAbstracts,
+    function(Q, getData, getAbstracts, dispatcher,
       JournalList, http, GlobalDistributionMap) {
 
   // Utilities, helpers, constants, etc.
