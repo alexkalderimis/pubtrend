@@ -117,3 +117,8 @@ rect {
   shape-rendering: crispEdges;
 }
 
+.journal-list .chart {
+    width: 100%;
+    height: 400px;
+}
+

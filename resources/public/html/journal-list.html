@@ -20,18 +20,12 @@
   </section>
   <section class="row">
     <form>
-        <label>
-            <span>Map</span>
-            <input type="radio" name="view" value="map">
-        </label>
-        <label>
-            <span>Abstracts</span>
-            <input type="radio" name="view" value="abstracts">
-        </label>
-        <label>
-            <span>Journals</span>
-            <input type="radio" name="view" value="journals">
-        </label>
+        <% _.forEach(['Map', 'Abstracts', 'Journals'], function (view) { %>
+            <label>
+                <span><%= view %></span>
+                <input type="radio" name="view" value="<%= view.toLowerCase() %>">
+            </label>
+        <% }); %>
      </form>
   </section>
   <div class="journals">

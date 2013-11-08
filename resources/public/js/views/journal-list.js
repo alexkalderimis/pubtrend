@@ -29,17 +29,19 @@ define([
         , collection = (this.collection || (this.collection = new Backbone.Collection))
         , addToCollection = collection.add.bind(collection);
       self.initialWidth = model.get('limit');
+      self.maxSize = model.get('offset') + self.initialWidth;
       if (!model.has('view')) model.set({view: 'map'});
       model.on('change:offset', this.getData.bind(this));
       model.on('change:offset', function (model, offset) {
         self.$('.summary .start-ord').text(offset + 1);
       });
       model.on('change:limit', function (model, limit) {
-        var size = collection.length
+        var size = self.maxSize
           , offset = model.get('offset')
           , adj_os = offset + size
           , adj_lim = limit - size
           , year = model.get('year');
+        self.maxSize += adj_lim;
         self.$('.summary .end-ord').text(offset + limit);
         _.each(model.get('terms'), function (term) {
           getAbstracts(term, year, adj_os, adj_lim).then(addToCollection);
@@ -50,9 +52,11 @@ define([
           var $r = $(this);
           $r.prop('checked', $r.val() === view);
         });
+        // TODO: replace switches with polymorphic dispatch.
         switch(view) {
           case 'map':       return self.showMap();
           case 'abstracts': return self.showAbstractList();
+          case 'journals':  return self.showPieChart();
           default: throw new Error("Unknown view: " + view);
         }
       });
@@ -60,6 +64,7 @@ define([
         switch(self.model.get('view')) {
           case 'map':       return self.addMarker(citation);
           case 'abstracts': return self.addAbstract(citation);
+          case 'journals':  return self.updatePieChart(citation);
           default: throw new Error("Unknown view: " + self.model.get('view'));
         }
       });
@@ -96,7 +101,7 @@ define([
         evt.stopPropagation();
         var offset = this.model.get('offset')
           , limit = this.model.get('limit');
-        if (this.model.get('view') === 'map') {
+        if (this.model.get('view') !== 'abstracts') {
           this.model.set('limit', limit + this.initialWidth);
         } else {
           this.model.set('offset', offset + limit);
@@ -171,6 +176,112 @@ define([
           );
         }
       });
+    },
+
+    showPieChart: function () {
+      var self, journals, $elem, svg, dimensions, radius, colour, pie, 
+          moveToCenter, path;
+      self = this;
+      journals = this.$('.journals').empty();
+      self._markers = self._marker_misses = self._no_affil = 0;
+      $elem = $('<div/>').addClass('chart');
+      journals.append($elem);
+      height = $elem.height();
+      width = $elem.width();
+      radius = Math.min(width, height) / 2;
+      this.layout = d3.layout.pie().value(function (entry) { 
+        return entry.values;
+      }).sort(null);
+      this.pieColour = d3.scale.category20c();
+      this.arc = d3.svg.arc().innerRadius(radius * 0.3)
+                            .outerRadius(radius * 0.9);
+      svg = d3.select($elem.get(0)).append('svg');
+      moveToCenter = 'translate(' +(width * 0.5)+ ',' +(height * 0.5) + ')';
+      
+      detailG = svg.append('g')
+                   .attr('class', 'details')
+                   .attr('transform', moveToCenter);
+
+      this.path = detailG.selectAll('path');
+
+      this.updatePieChart();
+    },
+
+    updatePieChart: function () {
+      var data = d3.nest()
+                   .key(function (cit) { return cit.journal.title; })
+                   .rollup(function (leaves) { return leaves.length })
+                   .entries(this.collection.toJSON());
+      var colour = this.pieColour;
+      var layout = this.layout;
+      var arc = this.arc;
+      var data0 = this.path.data();
+      var data1 = layout(data);
+      var onUpdate = this.path = this.path.data(data1, key);
+      onUpdate.enter()
+          .append('path')
+          .each(setCurrent)
+          .attr('fill', _.compose(colour, key))
+          .append('title').text(title);
+
+      _.defer(function() {
+        onUpdate.transition().duration(250).attrTween('d', arcTween)
+      });
+      onUpdate.selectAll('title').text(title);
+
+      function setCurrent(d, i) {
+        this._current = findNeighborArc(i) || d;
+      }
+
+      function title (d) {
+        return d.data.key + '(' + d.value + ')';
+      }
+  
+      function findNeighborArc(i) {
+        var d;
+        var pos = function (d) {
+          return {startAngle: d.endAngle, endAngle: d.endAngle};
+        };
+
+        if (d = findPreceding(i)) {
+          return pos(d);
+        } else if (d = findFollowing(i)) {
+          return pos(d);
+        } else {
+          return null; 
+        }
+      }
+
+      // Find the element in data0 that joins the highest preceding element in data1.
+      function findPreceding(i) {
+        var m = data0.length;
+        while (--i >= 0) {
+          var k = key(data1[i]);
+          for (var j = 0; j < m; ++j) {
+            if (key(data0[j]) === k) return data0[j];
+          }
+        }
+      }
+
+      // Find the element in data0 that joins the lowest following element in data1.
+      function findFollowing(i) {
+        var n = data1.length, m = data0.length;
+        while (++i < n) {
+          var k = key(data1[i]);
+          for (var j = 0; j < m; ++j) {
+            if (key(data0[j]) === k) return data0[j];
+          }
+        }
+      }
+
+      function key (d) {
+        return d.data.key;
+      }
+      function arcTween (d, i) {
+        var f = d3.interpolate(this._current, d);
+        this._current = f(0);
+        return function (time) { return arc(f(time)); };
+      }
     },
 
     showMap: function () {
