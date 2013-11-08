@@ -2,22 +2,21 @@ define([
     'abstract-source',
     'views/journal',
     'http',
+    'leaflet',
+    'stamen',
+    'awesome-markers',
     'text!/html/journal-list.html',
     'text!/html/marker-title.html'
     ],
-    function(getAbstracts, Journal, http, html, marker_title) {
+    function(getAbstracts, Journal, http, L, S, AM, html, marker_title) {
 
   var MAP_OPTS = {
-    center: new google.maps.LatLng(20.0, 10.0),
-    zoom: 2,
-    mapTypeId: google.maps.MapTypeId.RoadMap
+    center: new L.LatLng(20.0, 10.0),
+    zoom: 2
   };
-  var ICONS = [
-    'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
-    'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
-    'http://maps.google.com/mapfiles/ms/icons/purple-dot.png',
-    'http://maps.google.com/mapfiles/ms/icons/yellow-dot.png',
-    'http://maps.google.com/mapfiles/ms/icons/green-dot.png'
+  var ICON_COLOURS = [
+    'blue', 'red', 'green', 'darkred', 'orange', 'darkgreen',
+    'purple', 'darkpuple', 'cadetblue'
   ];
 
   var JournalList = Backbone.View.extend({
@@ -111,7 +110,7 @@ define([
       this.render();
       $('body').append(this.el);
       this.$el.foundation('reveal', 'open');
-      setTimeout(this.getData.bind(this), 500);
+      this.getData();
       return this;
     },
 
@@ -135,43 +134,68 @@ define([
     citationMarkerTitle: _.template(marker_title),
 
     getIcon: function (term) {
-      return ICONS[this.model.get('terms').indexOf(term)];
+      var colour = ICON_COLOURS[this.model.get('terms').indexOf(term)];
+      var icon = L.AwesomeMarkers.icon({
+        prefix: 'fa',
+        icon: 'file-text',
+        markerColor: colour
+      });
+      return icon;
     },
 
     addMarker: function (citation) {
-      if (!citation.has('affiliation')) return;
-      var citationMarkerTitle = this.citationMarkerTitle;
-      var map = this.map;
       var self = this;
+      var map = this.map;
+      if (!citation.has('affiliation')) {
+        self._no_affil++;
+        self.$('.no-affil').text(
+          self._no_affil + " publications without addresses"
+        );
+        return;
+      }
+      var citationMarkerTitle = this.citationMarkerTitle;
       http.getJSON('/location', {address: citation.get('affiliation')})
           .then(function (loc) {
-        if (!loc || !(loc.lat && loc.lng) ) return;
-        var marker = new google.maps.Marker({
-          position: new google.maps.LatLng(loc.lat, loc.lng),
-          title: citationMarkerTitle(citation.toJSON())
-        });
-        marker.setIcon(self.getIcon(citation.get('term')));
-        marker.setMap(map);
-        self._markers++;
-        self.$('.marker-count').text(self._markers + " locations found");
+        if (loc && loc.lat && loc.lng) {
+
+          var marker = L.marker([loc.lat, loc.lng]);
+          marker.bindPopup(citationMarkerTitle(citation.toJSON()));
+          marker.setIcon(self.getIcon(citation.get('term')));
+          marker.addTo(map);
+          self._markers++;
+          self.$('.marker-count').text(self._markers + " locations found");
+        } else {
+          self._marker_misses++;
+          self.$('.marker-miss-count').text(
+            self._marker_misses + " addresses without location"
+          );
+        }
       });
     },
 
     showMap: function () {
       var self = this;
       var journals = this.$('.journals').empty();
-      self._markers = 0;
+      self._markers = self._marker_misses = self._no_affil = 0;
       var $elem = $('<div/>').addClass('map');
+      journals.append(
+          '<div><span class="label marker-count"></span>' + 
+          '<span class="label marker-miss-count"></span>' +
+          '<span class="label no-affil"></span></div>'
+      );
       journals.append($elem);
-      journals.append('<div><span class="label marker-count"></span></div>');
-      this.map = new google.maps.Map($elem.get(0), MAP_OPTS);
+      var layer = new L.StamenTileLayer(this.model.get('mapStyle'));
+      this.map = new L.Map($elem.get(0), MAP_OPTS);
+      this.map.addLayer(layer);
       this.collection.each(this.addMarker.bind(this));
     },
 
     render: function () {
       var model = this.model;
       this.$el.html(this.template(model.toJSON()));
-      model.trigger('change:view', model, model.get('view'));
+      setTimeout(function () {
+        model.trigger('change:view', model, model.get('view'));
+      }, 500);
       return this;
     }
 

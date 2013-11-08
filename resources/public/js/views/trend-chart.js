@@ -128,22 +128,28 @@ define([
       var terms = this.model.get('terms')
         , t = terms[0] // just one for now.
         , y = this.model.get('start')
-        , url = _.template("/citations/<%= term %>/<%= year %>", {term: t, year: y});
       // Ok to get-data - coming straight from cache.
-      getData({term: t, start: y, end: y}).then(function (res) {
+      var promises = terms.map(function (t) {
+        return getData({
+          term: t, start: y, end: y
+        });
+      });
+      Q.all(promises).then(function(results) {
+        var total = _.reduce(results, function (sum, res) {
+          return sum + res[0][1];
+        }, 0);
         var model = new Backbone.Model({
           terms: terms.slice(),
           year: y,
-          count: res[0][1],
+          count: total,
           offset: 0,
           limit: 50,
-          view: 'abstracts'
+          mapStyle: 'toner-lite',
+          view: 'map'
         });
         var jl = new JournalList({model: model});
         jl.show();
       });
-
-      // http.getJSON(url).then(this.drawGlobalDistributionMap.bind(this));
     },
 
     drawGlobalDistributionMap: function (citations) {

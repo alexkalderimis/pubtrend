@@ -32,7 +32,6 @@
     "/vendor/underscore/underscore-min.js"
     "/vendor/backbone/backbone-min.js"
     "/vendor/foundation.min.js"
-    "https://maps.googleapis.com/maps/api/js?key=AIzaSyAqbdvFK7AfEqcctv9LHYNTy2xIFLo4n5g&sensor=false"
     "/vendor/d3.v3.js"])
 
 (defn common [title & body]
@@ -43,6 +42,9 @@
      [:meta {:name "viewport" :content "width=device-width, initial-scale=1, maximum-scale=1"}]
      [:title title]
      (include-css "/stylesheets/style.css"
+                  "//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css"
+                  "/vendor/awesome-markers/leaflet.awesome-markers.css"
+                  "http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.css"
                   "/stylesheets/foundation-4.3.2/normalize.css"
                   "/stylesheets/foundation-4.3.2/foundation.min.css")
      (include-css "http://fonts.googleapis.com/css?family=Rokkitt")]
