@@ -1,1 +1,4 @@
-define -> _.clone Backbone.Events
+define (require) ->
+  _ = require 'underscore'
+  Backbone = require 'backbone'
+  _.clone Backbone.Events
