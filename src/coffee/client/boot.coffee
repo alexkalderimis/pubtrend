@@ -8,6 +8,10 @@ require.config
       exports: '_'
     d3:
       exports: 'd3'
+    foundation:
+      deps: ['jquery']
+      exports: 'Foundation'
+      init: ($) -> $(document).foundation()
     jquery:
       exports: '$'
     stamen:
@@ -22,6 +26,7 @@ require.config
     "d3": "/vendor/d3.v3"
     "backbone": "/vendor/backbone/backbone-min"
     "underscore": "/vendor/underscore/underscore-min"
+    "foundation": "/vendor/foundation.min"
     "jquery": "/vendor/zepto"
     'leaflet': "http://cdn.leafletjs.com/leaflet-0.6.4/leaflet",
     'stamen': "http://maps.stamen.com/js/tile.stamen.js?v1.2.3",
