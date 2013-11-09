@@ -1,4 +1,7 @@
-define ['Q', 'underscore'], (Q, _) ->
+define (require) ->
+  Q = require 'Q'
+  _ = require 'underscore'
+  http = require 'http'
 
   EFETCH = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi'
   ESEARCH = "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
@@ -58,56 +61,42 @@ define ['Q', 'underscore'], (Q, _) ->
     # They are integers, but we can treat them as strings.
     (elem.textContent for elem in doc.getElementsByTagName('Id'))
 
+  ID_OPTS =
+    type: "GET"
+    url: ESEARCH
+    dataType: "xml"
+
+  ID_PARAMS =
+    tool: tool
+    email: email
+    db: db
+    rettype: "uilist",
+    datetype: "pdat",
+
+  idReqParams = (term, year, offset, limit) ->
+    mindate = year + '/01'
+    maxdate = year + '/12'
+    retmax = (limit ? 100)
+    retstart = (offset ? 0)
+
+    _.extend {mindate, maxdate, retstart, term, retmax}, ID_PARAMS
+
   ## (string, int, int?, int?) -> Promise<Array<String>>
   getIds = (term, year, offset, limit) ->
-    def = Q.defer()
-    onSuccess = _.compose(def.resolve.bind(def), extractIds)
+    data = idReqParams term, year, offset, limit
+    http.ajax(_.extend {data}, ID_OPTS).then extractIds
 
-    params =
-        tool: tool,
-        email: email,
-        db: db,
-        rettype: "uilist",
-        mindate: (year + "/01"),
-        maxdate: (year + "/12"),
-        term: term,
-        datetype: "pdat",
-        retmax: (limit ? 100)
-
-    params.retstart = offset if offset?
-
-    $.ajax
-      type: "GET",
-      url: ESEARCH,
-      data: params,
-      dataType: "xml",
-      error: def.reject.bind(def),
-      success: onSuccess
-
-    return def.promise
+  ABSTRACT_OPTS =
+    type: 'POST'
+    url: EFETCH
+    dataType: "xml"
 
   ## (string, int, int?, int?) -> Promise<Array<Journal>>
   getAbstracts = (term, year, offset, limit) ->
-    def = Q.defer()
-    onSuccess = _.compose(def.resolve.bind(def), extractAbstracts(term))
-    gettingIds = getIds(term, year, offset, limit)
-
-    gettingIds.then (ids) ->
-      params =
-        tool: tool,
-        email: email,
-        db: db,
-        retmode: retmode,
-        id: ids.join(',')
-
-      $.ajax
-        type: "POST",
-        url: EFETCH,
-        data: params,
-        dataType: "xml",
-        error: def.reject.bind(def),
-        success: onSuccess
-
-    return def.promise
+    idsToAbstractsDoc = (ids) ->
+      id = ids.join ','
+      console.log "Getting", id
+      http.ajax _.extend {data: {tool, email, db, retmode, id}}, ABSTRACT_OPTS
+    getIds(term, year, offset, limit).then(idsToAbstractsDoc).then extractAbstracts term
 
   return getAbstracts
