@@ -1,4 +1,7 @@
-define ['backbone', 'text!/html/journal.html'], (Backbone, html) ->
+define (require) ->
+  Backbone = require 'backbone'
+  html = require 'text!/html/journal.html'
+  _ = require 'underscore'
 
   class Journal extends Backbone.View
 
