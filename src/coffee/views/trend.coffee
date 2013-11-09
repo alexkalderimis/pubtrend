@@ -32,14 +32,14 @@ define ['backbone'], (Backbone) ->
         right = $('<div class="small-4 columns">')
         right.append(rm)
         row.append(right)
-        rm.click (evt) ->
+        rm.click (evt) =>
           evt.preventDefault()
           evt.stopImmediatePropagation()
           if idx is null
             row.remove() # not in model, just UI.
           else
             terms.splice(idx, 1); # Remove this term from model
-            self.model.set {terms}
+            @model.set {terms}
 
       @$('#pubtrends-terms').append row
       tb.val(val) if val?
