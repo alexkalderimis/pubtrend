@@ -106,7 +106,7 @@ define (require) ->
         .selectAll('rect.background')
           .attr('width', @getDimensions().width)
 
-    drawDetailedAnalysis: ->
+    drawDetailedAnalysis: =>
       terms = @model.get('terms')
       y = @model.get('start')
       # Ok to get-data - coming straight from cache.
@@ -142,8 +142,9 @@ define (require) ->
 
       fetching = @fetchData()
       fetching.then(action.bind(this))
-      if @model.width() is 1
-        fetching.then(@drawDetailedAnalysis.bind(this))
+
+      fetching.done @drawDetailedAnalysis if @model.width() is 1
+
       @priorState = @model.toJSON()
 
     getMainGroup: () ->
