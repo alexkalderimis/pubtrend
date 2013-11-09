@@ -6,6 +6,8 @@ require.config
       exports: 'Backbone'
     underscore:
       exports: '_'
+    d3:
+      exports: 'd3'
     jquery:
       exports: '$'
     stamen:
@@ -17,6 +19,7 @@ require.config
     leaflet:
       exports: 'L'
   paths:
+    "d3": "/vendor/d3.v3.js"
     "backbone": "/vendor/backbone/backbone-min"
     "underscore": "/vendor/underscore/underscore-min"
     "jquery": "/vendor/zepto"
