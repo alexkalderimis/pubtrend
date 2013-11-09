@@ -3,6 +3,7 @@
         clojure.tools.logging
         [clojure.string :only (split)])
   (:require [pubtrend.data :as data]
+            [pubtrend.assets :as assets]
             [pubtrend.views :as views]
             [compojure.handler :as handler]
             [cheshire.core :as json]
@@ -54,6 +55,10 @@
   (route/resources "/")
   (route/not-found "Not Found"))
 
-(def app (routes
+(def site (routes
   (handler/api api-routes)
   (handler/site site-routes)))
+
+(def app 
+  (-> site 
+      (assets/asset-pipeline :output-dir "/js" :engine :v8 :coffee-route "src/coffee")))
