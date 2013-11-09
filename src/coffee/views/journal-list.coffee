@@ -1,15 +1,14 @@
-deps = [
-    'abstract-source',
-    'views/journal',
-    'http',
-    'leaflet',
-    'stamen',
-    'awesome-markers',
-    'text!/html/journal-list.html',
-    'text!/html/marker-title.html'
-]
+define (require) ->
 
-define deps, (getAbstracts, Journal, http, L, S, AM, html, marker_title) ->
+  Journal = require 'views/journal'
+  L = require 'leaflet'
+  S = require 'stamen'
+  Markers = require 'awesome-markers'
+  getAbstracts = require 'abstract-source'
+  d3 = require 'd3'
+  http = require 'http'
+  html = require 'text!/html/journal-list.html'
+  marker_title = require 'text!/html/marker-title.html'
 
   MAP_OPTS =
     center: new L.LatLng(20.0, 10.0),
@@ -20,10 +19,10 @@ define deps, (getAbstracts, Journal, http, L, S, AM, html, marker_title) ->
     'purple', 'darkpuple', 'cadetblue'
   ]
 
-  arcTween = (d, i) ->
+  arcTween = (arc) -> (d, i) ->
     f = d3.interpolate @_current, d
     @_current = f 0
-    _.compose arc f
+    _.compose arc, f
 
   class JournalList extends Backbone.View
 
@@ -33,8 +32,8 @@ define deps, (getAbstracts, Journal, http, L, S, AM, html, marker_title) ->
       @collection = new Backbone.Collection unless @collection?
 
       addToCollection = @collection.add.bind @collection
-      @initialWidth = model.get('limit')
-      @maxSize = model.get('offset') + @initialWidth
+      @initialWidth = @model.get('limit')
+      @maxSize = @model.get('offset') + @initialWidth
 
       @model.set({view: 'map'}) unless @model.has('view')
       @model.on 'change:offset', @getData
@@ -56,24 +55,24 @@ define deps, (getAbstracts, Journal, http, L, S, AM, html, marker_title) ->
           $r.prop('checked', $r.val() is view)
         # TODO: replace switches with polymorphic dispatch.
         switch view
-          when 'map' then @showMap()
+          when 'map'       then @showMap()
           when 'abstracts' then @showAbstractList()
-          when 'journals' then showPieChart()
+          when 'journals'  then @showPieChart()
           else throw new Error("Unknown view: " + view)
 
       @collection.on 'add', (citation) =>
         switch self.model.get('view')
-          when 'map' then @addMarker(citation)
+          when 'map'       then @addMarker(citation)
           when 'abstracts' then @addAbstract(citation)
-          when 'journals' then @updatePieChart(citation)
-          else throw new Error("Unknown view: " + @model.get('view'))
+          when 'journals'  then @updatePieChart(citation)
+          else throw new Error('Unknown view: ' + @model.get('view'))
 
     getData: =>
       {offset, limit, terms, year} = @model.toJSON()
       addCitation = (xs) => @collection.add xs
       # Fetch in parallel.
       @collection.reset()
-      for idx in [offset, offset + limit]
+      for idx in [offset .. offset + limit]
         for term in terms
           getAbstracts(term, year, idx, 1).then addCitation
 
@@ -109,7 +108,7 @@ define deps, (getAbstracts, Journal, http, L, S, AM, html, marker_title) ->
       @remove()
 
     addAbstract: (journal) =>
-      journalView = new Journal({model: journal})
+      journalView = new Journal model: journal
       @$('.journals > ul').append(journalView.render().el)
 
     showAbstractList: ->
@@ -135,6 +134,7 @@ define deps, (getAbstracts, Journal, http, L, S, AM, html, marker_title) ->
         @$('.no-affil').text self._no_affil + " publications without addresses"
         return
 
+      console.log "Fetching location for", citation.get 'affiliation'
       http.getJSON('/location', {address: citation.get('affiliation')}).then (loc) =>
         if (loc && loc.lat && loc.lng)
           marker = L.marker([loc.lat, loc.lng])
@@ -194,7 +194,7 @@ define deps, (getAbstracts, Journal, http, L, S, AM, html, marker_title) ->
           .attr('fill', _.compose(@pieColour, key))
           .append('title').text(title)
 
-      _.defer -> onUpdate.transition().duration(250).attrTween('d', arcTween)
+      _.defer => onUpdate.transition().duration(250).attrTween('d', arcTween @arc)
 
       onUpdate.selectAll('title').text title
 
