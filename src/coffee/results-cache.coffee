@@ -12,7 +12,7 @@ define ->
   getUncachedYears = ({term, start, end}) ->
     cache = getTermCache(term)
 
-    (year for year in [start .. end] when not year of cache)
+    (year for year in [start .. end] when year not of cache)
 
   serveWithCacheHits = ({term, start, end}) -> (data) ->
     cache = getTermCache term
@@ -29,5 +29,5 @@ define ->
 
   resultsCache =
     getUncachedYears: getUncachedYears,
-    addToCache: addToCache,
-    serveWithCacheHits: serveWithCacheHits
+    add: addToCache,
+    withHits: serveWithCacheHits

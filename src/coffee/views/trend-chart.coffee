@@ -4,8 +4,9 @@ define (require) ->
   d3 = require 'd3'
   Q = require 'Q'
   getAbstracts = require 'abstract-source'
+  getData = require 'data-source'
   dispatcher = require 'dispatcher'
-  JournalList = require 'journal-list'
+  JournalList = require 'views/journal-list'
   http = require 'http'
 
   # Utilities, helpers, constants, etc.
@@ -261,7 +262,7 @@ define (require) ->
 
       fetching = Q.all promises
       
-      fetching.done ->
+      fetching.done =>
         earlier = @getNextState('earlier')
         later = @getNextState('later')
         # Warm the local cache by prefetching left and right pages.

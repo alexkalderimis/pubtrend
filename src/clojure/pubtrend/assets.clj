@@ -15,10 +15,14 @@
     (debug "Checking existence of" file)
     (when (.exists file) file)))
 
+(defn is-asset-req [req]
+  (and (= :get (:request-method req))
+       (.endsWith (:uri req) ".js")))
+
 ;; Just coffeescript at the moment
 (defn asset-pipeline [app & {:as options}]
   (fn [req]
-    (if-not (= :get (:request-method req))
+    (if-not (is-asset-req req)
       (app req)
       (settings/with-options options
         (if-let [asset-file (asset-file-for req options)]

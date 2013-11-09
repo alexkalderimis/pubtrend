@@ -1,15 +1,15 @@
-define ['Q', 'results-cache', 'http'],  (Q, resultsCache, http) ->
+define ['Q', 'results-cache', 'http'],  (Q, cache, http) ->
 
   trendUrlTempl = ({term, years}) -> "/disease/#{ term }/#{ years }"
 
   getTrendUrl = (opts) ->
     term = opts.term
-    uncachedYears = resultsCache.getUncachedYears(opts)
+    uncachedYears = cache.getUncachedYears(opts)
     nCacheMisses = uncachedYears.length
 
     return null if nCacheMisses is 0
 
-    years if nCacheMisses is uncachedYears[nCacheMisses - 1] - uncachedYears[0] + 1
+    years = if nCacheMisses is uncachedYears[nCacheMisses - 1] - uncachedYears[0] + 1
       #  Continuous range.
       [start, end] = [uncachedYears[0], uncachedYears[nCacheMisses - 1]]
       "#{ start }/#{ end }"
@@ -22,9 +22,7 @@ define ['Q', 'results-cache', 'http'],  (Q, resultsCache, http) ->
     trendUrlTempl {term, years}
 
   getData = (opts) ->
-    url = getTrendUrl(opts)
-    addToCache = resultsCache.addToCache(opts)
-    serveWithHits = resultsCache.serveWithCacheHits(opts)
+    [url, addToCache, serveWithHits] = (f opts for f in [getTrendUrl, cache.add, cache.withHits])
     promise = if (url) then http.getJSON(url) else Q []
 
     promise.then(addToCache).then(serveWithHits)

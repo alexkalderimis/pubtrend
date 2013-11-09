@@ -1,6 +1,6 @@
 define ['backbone'], (Backbone) ->
 
-  class TrendView extends Backbone
+  class TrendView extends Backbone.View
   
     initialize: ->
       @model.on 'change', @render

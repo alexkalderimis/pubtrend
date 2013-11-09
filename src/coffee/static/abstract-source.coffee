@@ -67,7 +67,6 @@ define ['Q', 'underscore'], (Q, _) ->
         tool: tool,
         email: email,
         db: db,
-        term: term,
         rettype: "uilist",
         mindate: (year + "/01"),
         maxdate: (year + "/12"),

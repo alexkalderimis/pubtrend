@@ -2,7 +2,7 @@ define ['Q'], (Q) ->
 
   ajax = (opts) ->
     def = Q.defer()
-    error = def,reject
+    error = def.reject
     success = def.resolve
     $.ajax _.extend {}, opts, {error, success}
     def.promise
