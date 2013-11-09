@@ -1,4 +1,4 @@
-deps = [ 'dispatcher', 'models/trend', 'views/trend', 'views/trend-chart', 'views/messages' ]
+deps = [ 'dispatcher', 'models/trend', 'views/trend', 'views/trend-chart', 'views/messages', 'foundation']
 
 define deps, (dispatcher, Trend, TrendView, TrendChartView, Messages) ->
 
