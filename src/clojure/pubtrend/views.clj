@@ -27,12 +27,7 @@
                   (assoc-if :value value))]
     [:input attrs]))
 
-(def vendor-scripts [
-    "/vendor/zepto.js"
-    "/vendor/underscore/underscore-min.js"
-    "/vendor/backbone/backbone-min.js"
-    "/vendor/foundation.min.js"
-    "/vendor/d3.v3.js"])
+(def vendor-scripts [])
 
 (defn common [title & body]
   (html5
@@ -134,5 +129,4 @@
           (trend-controls)
           (map with-utf8-charset
                (conj (apply include-js vendor-scripts)
-                     (entry-point "/js/client/boot")))
-          (javascript-tag "$(document).foundation();")))
+                     (entry-point "/js/client/boot")))))
