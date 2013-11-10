@@ -15,13 +15,11 @@ define (require) ->
       @subviews = []
       @collection = new Backbone.Collection unless @collection?
 
-      addToCollection = @collection.add.bind @collection
       @initialWidth = @model.get('limit')
       @maxSize = @model.get('offset') + @initialWidth
 
       @model.set({view: 'map'}) unless @model.has('view')
       @model.on 'change:offset', @getData
-      @model.on 'change:offset', (model, offset) => @$('.summary .start-ord').text offset + 1
       @model.on 'change:limit', (model, limit) =>
         size = @maxSize
         offset = @model.get('offset')
@@ -30,15 +28,18 @@ define (require) ->
         adj_lim = limit - size
         @maxSize += adj_lim
         @$('.summary .end-ord').text offset + limit
-        for term in model.get('terms')
-          getAbstracts(term, year, adj_os, adj_lim).then addToCollection
+        @fetchInParallel(adj_os, @maxSize)
+      @collection.on 'add', => @$('.summary .sample-size').text @collection.length
 
     getData: =>
-      {offset, limit, terms, year} = @model.toJSON()
-      addCitation = (xs) => @collection.add xs
-      # Fetch in parallel.
+      {offset, limit} = @model.toJSON()
       @collection.reset()
-      for idx in [offset .. offset + limit]
+      @fetchInParallel(offset, offset + limit)
+
+    fetchInParallel: (from, to) ->
+      {terms, year} = @model.toJSON()
+      addCitation = (xs) => @collection.add xs
+      for idx in [from ... to]
         for term in terms
           getAbstracts(term, year, idx, 1).then addCitation
 
