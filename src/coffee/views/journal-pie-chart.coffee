@@ -32,6 +32,17 @@ define (require) ->
     initialize: ->
       @model.on 'change:view', (model, view) =>
         setTimeout(@reflow, 100) if view is 'journals'
+      @on 'journal:interest', (journal) =>
+        console.log journal
+        [ofInterest, boring] = (arcTween f for f in [@interestArc, @arc])
+        tween = if journal?
+          (d, i) ->
+            console.log journal, d
+            f = if journal is key d then ofInterest else boring
+            f.apply @, arguments
+        else
+          boring
+        _.defer => @path.transition().duration(250).attrTween('d', tween)
 
     template: _.template html
 
@@ -51,6 +62,7 @@ define (require) ->
 
       @detailG.attr 'transform', moveToPosition
       @arc = d3.svg.arc().innerRadius(radius * 0.3).outerRadius(radius * 0.9)
+      @interestArc = d3.svg.arc().innerRadius(radius * 0.4).outerRadius(radius)
       @$('.legend').toggle ratio >= 2
       @updatePieChart()
 
@@ -78,7 +90,10 @@ define (require) ->
     updateTable: (data) ->
       rowKey = ({key}) -> key
       @rows = @rows.data data, rowKey
+      reportInterest = (journal) => @trigger 'journal:interest', journal
       @rows.enter().append('tr')
+           .on('mouseout', (d) -> reportInterest null)
+           .on('mouseover', (d) -> reportInterest rowKey d)
       @rows.style 'background', _.compose(@palette, rowKey)
 
       @cells = @rows.selectAll('td').data(({key, values}) -> [key, values])
