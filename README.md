@@ -44,6 +44,16 @@ form, pressing the `earlier` and `later` buttons or pressing the
 One or more search terms can be entered, and the data for each
 trend will be overlaid in the chart area.
 
+You can zoom in to any year and view an analysis of the
+publications fo those terms in that year, including analysis of
+the number of publications per journal:
+
+![Image](../master/resources/pubtrend-pie.png?raw=true)
+
+or by location:
+
+![Image](../master/resources/pubtrend-map.png?raw=true)
+
 ## License
 
 Copyright © 2013 Alexis Kalderimis
