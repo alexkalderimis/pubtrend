@@ -27,32 +27,80 @@ define (require) ->
 
   class JournalPieChart extends Backbone.View
 
+    className: 'journal-pie-chart'
+
+    initialize: ->
+      @model.on 'change:view', (model, view) =>
+        setTimeout(@reflow, 100) if view is 'journals'
+
     template: _.template html
 
     layout: d3.layout.pie().sort(null).value ({values}) -> values
 
     palette: d3.scale.category20c()
 
-    render: ->
-      @$el.html @template @model.toJSON()
+    reflow: =>
+      console.log "Calculating size"
       height = @$el.height()
       width = @$el.width()
+      console.log(width, 'x', height)
       radius = Math.min(width, height) / 2
-      svg = d3.select(@el).append('svg')
-      moveToCenter = "translate(#{ width / 2},#{ height / 2})"
-      detailG = svg.append('g').attr('class', 'details').attr 'transform', moveToCenter
+      ratio = width / height
+      moveToPosition = if ratio >= 2
+        "translate(#{ width / 4},#{ height / 2})"
+      else
+        "translate(#{ width / 2},#{ height / 2})"
 
+      @detailG.attr 'transform', moveToPosition
       @arc = d3.svg.arc().innerRadius(radius * 0.3).outerRadius(radius * 0.9)
-      @path = detailG.selectAll('path')
-
+      @$('.legend').toggle ratio >= 2
       @updatePieChart()
+
+    render: ->
+      @$el.html @template @model.toJSON()
+
+      legend = d3.select(@el).append('div').attr('class', 'legend')
+      table = legend.append('table')
+      thead = table.append('thead')
+      tbody = table.append('tbody')
+      @rows = tbody.selectAll('tr')
+      @cells = @rows.selectAll('td')
+      thead.append('tr')
+           .selectAll('th')
+           .data(['Journal', 'Count'])
+           .enter()
+           .append('th')
+           .text(_.identity)
+
+      svg = d3.select(@$('.pie.chart').get(0)).append('svg')
+      @detailG = svg.append('g').attr('class', 'details')
+
+      @path = @detailG.selectAll('path')
+
+      @reflow()
+
       @collection.on 'add', @updatePieChart
+
+    updateTable: (data) ->
+      rowKey = ({key}) -> key
+      @rows = @rows.data data, rowKey
+      @rows.enter().append('tr')
+      @rows.style 'background', _.compose(@palette, rowKey)
+
+      @cells = @rows.selectAll('td').data(({key, values}) -> [key, values])
+                  .enter()
+                  .append('td')
+
+      @cells.text _.identity
+
+      @$('.legend').show()
 
     updatePieChart: =>
       data = d3.nest()
               .key(({journal: {title}}) -> title)
               .rollup(({length}) -> length)
               .entries(@collection.toJSON())
+      @updateTable(data.slice())
       data0 = @path.data()
       data1 = @layout(data)
       wasBefore = findOldDatum data0, (i) -> -> data1[i] if ++i <  data1.length

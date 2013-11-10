@@ -95,7 +95,6 @@ define (require) ->
   getAbstracts = (term, year, offset, limit) ->
     idsToAbstractsDoc = (ids) ->
       id = ids.join ','
-      console.log "Getting", id
       http.ajax _.extend {data: {tool, email, db, retmode, id}}, ABSTRACT_OPTS
     getIds(term, year, offset, limit).then(idsToAbstractsDoc).then extractAbstracts term
 

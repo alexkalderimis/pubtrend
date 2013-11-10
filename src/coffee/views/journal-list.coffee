@@ -33,17 +33,6 @@ define (require) ->
         for term in model.get('terms')
           getAbstracts(term, year, adj_os, adj_lim).then addToCollection
 
-      #model.on 'change:view', (model, view) =>
-      # @$('input[name="view"]').each ->
-      #   $r = $(this)
-      #   $r.prop('checked', $r.val() is view)
-      # @evictKids()
-      # switch view
-      #   when 'map'       then @showMap()
-      #   when 'abstracts' then @showAbstractList()
-      #   when 'journals'  then @showPieChart()
-      #   else throw new Error("Unknown view: " + view)
-
     getData: =>
       {offset, limit, terms, year} = @model.toJSON()
       addCitation = (xs) => @collection.add xs
