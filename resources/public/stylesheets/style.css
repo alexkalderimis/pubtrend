@@ -127,6 +127,11 @@ rect {
     height: 400px;
 }
 
+.pie svg {
+    height: 100%;
+    width: 100%;
+}
+
 .apology {
     font-weight: bold;
     text-transform: uppercase;
