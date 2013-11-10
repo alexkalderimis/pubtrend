@@ -25,7 +25,13 @@
             <tr>
                 <td class="key">first author</td>
                 <td class="val">
-                    <%- authors[0].foreName %> <%- authors[0].lastName %>
+                    <% if (authors[0]) { %>
+                        <span class="author">
+                            <%- authors[0].foreName %> <%- authors[0].lastName %>
+                        </span>
+                    <% } else { %>
+                        <span class="apology">no authors listed</span>
+                    <% } %>
                 </td>
             </tr>
         </tbody>
@@ -35,7 +41,7 @@
         <% if (abstract) { %>
             <p class="abstract"><%- abstract %></p>
         <% } else { %>
-            <i>No abstract available</i>
+            <i class="apology">No abstract available</i>
         <% } %>
         <% if (copyright) { %>
             <span class="copyright"><%- copyright %></span>

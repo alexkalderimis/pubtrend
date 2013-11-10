@@ -38,7 +38,7 @@ define deps, (dispatcher, Trend, TrendView, TrendChartView, Messages) ->
         state = model.toJSON()
         width = state.end - state.start + 1
         round = if (direction is 'out') then Math.ceil else Math.floor
-        delta = round if (direction is 'out') then (width / 2) else (-width / 3)
+        delta = round if (direction is 'out') then (width / 2) else (-width / 5)
         state.start = Math.max Trend.MIN, state.start - delta
         state.end = Math.min Trend.MAX, state.end + delta
         model.set(state)

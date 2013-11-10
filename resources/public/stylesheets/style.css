@@ -29,7 +29,7 @@ svg {
   stroke-opacity: 1;
 }
 
-.title {
+#pubtrend-viz .title {
   font: 300 48px Rokkit; /* Helvetica Neue; */
   fill: #666;
 }
@@ -81,7 +81,7 @@ rect {
     margin: 0;
     width: 100%;
 }
-.journals ul {
+.abstracts-panel ul {
     list-style-type: none;
 }
 .journals .loading {
@@ -96,9 +96,14 @@ rect {
     font-size: 0.8em;
 }
 
-.modal .map {
+.modal .map-panel {
     width: 100%;
-    height: 450px;
+    height: 400px;
+}
+.modal .map-panel .distribution,
+.modal .map-panel .map {
+    width: 100%;
+    height: 100%;
 }
 
 .journal td.key {
@@ -122,3 +127,8 @@ rect {
     height: 400px;
 }
 
+.apology {
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #aaa;
+}

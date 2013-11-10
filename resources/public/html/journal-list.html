@@ -18,18 +18,19 @@
         of <%= count %>
     </p>
   </section>
-  <section class="row">
-    <form>
-        <% _.forEach(['Map', 'Abstracts', 'Journals'], function (view) { %>
-            <label>
-                <span><%= view %></span>
-                <input type="radio" name="view" value="<%= view.toLowerCase() %>">
-            </label>
-        <% }); %>
-     </form>
-  </section>
-  <div class="journals">
-      <span class="loading">Loading...</span>
+  <div class="section-container auto" data-section>
+    <% _.forEach(['Map', 'Abstracts', 'Journals'], function (view, i) { %>
+      <section <% if (i === 0) { %>class="active"<% } %>>
+        <p class="title <%= view.toLowerCase() %>" data-section-title>
+          <a href="#<%= view.toLowerCase() %>-panel">
+            <%= view %>
+          </a>
+        </p>
+        <div class="content <%= view.toLowerCase() %>-panel" data-section-content>
+            <p>Loading...</p>
+        </div>
+      </section>
+    <% }); %>
   </div>
   <button class="get-more small button">More</button>
 </div>
