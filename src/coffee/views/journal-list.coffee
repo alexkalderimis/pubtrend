@@ -16,19 +16,13 @@ define (require) ->
       @collection = new Backbone.Collection unless @collection?
 
       @initialWidth = @model.get('limit')
-      @maxSize = @model.get('offset') + @initialWidth
+      @upTo = @model.get('offset')
 
       @model.set({view: 'map'}) unless @model.has('view')
       @model.on 'change:offset', @getData
       @model.on 'change:limit', (model, limit) =>
-        size = @maxSize
-        offset = @model.get('offset')
-        year = @model.get('year')
-        adj_os = offset + size
-        adj_lim = limit - size
-        @maxSize += adj_lim
-        @$('.summary .end-ord').text offset + limit
-        @fetchInParallel(adj_os, @maxSize)
+        offset = @upTo
+        @fetchInParallel(offset, limit)
       @collection.on 'add', => @$('.summary .sample-size').text @collection.length
 
     getData: =>
@@ -39,6 +33,7 @@ define (require) ->
     fetchInParallel: (from, to) ->
       {terms, year} = @model.toJSON()
       addCitation = (xs) => @collection.add xs
+      @upTo = to
       for idx in [from ... to]
         for term in terms
           getAbstracts(term, year, idx, 1).then addCitation
