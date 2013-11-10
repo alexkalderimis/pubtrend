@@ -1,3 +1,4 @@
 Don't load null locations - let them be re-resolved.
 Move to lodash
-Move all script loading to require, including backbone and d3
+Add recentre to map
+Double click to zoom to location (+/- 3deg)

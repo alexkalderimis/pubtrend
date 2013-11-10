@@ -45,9 +45,12 @@ define (require) ->
     events: ->
       'opened': ->
         @$el.foundation('section', 'reflow')
+        view = @model.get 'view'
         @showAbstractList()
         @showPieChart()
         @showMap()
+        _.defer => @$("""a[href="\##{view}-panel"]""").click()
+          
       'click .title.map': -> @model.set view: 'map'
       'click .title.abstracts': -> @model.set view: 'abstracts'
       'click .title.journals': -> @model.set view: 'journals'

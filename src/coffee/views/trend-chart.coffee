@@ -120,7 +120,7 @@ define (require) ->
           offset: 0,
           limit: 50,
           mapStyle: 'toner-lite',
-          view: 'map'
+          view: 'journals'
         jl = new JournalList {model}
         jl.show()
 

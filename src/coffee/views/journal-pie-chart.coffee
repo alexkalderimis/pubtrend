@@ -40,10 +40,8 @@ define (require) ->
     palette: d3.scale.category20c()
 
     reflow: =>
-      console.log "Calculating size"
       height = @$el.height()
       width = @$el.width()
-      console.log(width, 'x', height)
       radius = Math.min(width, height) / 2
       ratio = width / height
       moveToPosition = if ratio >= 2
@@ -64,13 +62,10 @@ define (require) ->
       thead = table.append('thead')
       tbody = table.append('tbody')
       @rows = tbody.selectAll('tr')
-      @cells = @rows.selectAll('td')
       thead.append('tr')
            .selectAll('th')
            .data(['Journal', 'Count'])
-           .enter()
-           .append('th')
-           .text(_.identity)
+           .enter().append('th').text(_.identity)
 
       svg = d3.select(@$('.pie.chart').get(0)).append('svg')
       @detailG = svg.append('g').attr('class', 'details')
@@ -78,8 +73,7 @@ define (require) ->
       @path = @detailG.selectAll('path')
 
       @reflow()
-
-      @collection.on 'add', @updatePieChart
+      @collection.on 'add', @reflow
 
     updateTable: (data) ->
       rowKey = ({key}) -> key
@@ -88,8 +82,7 @@ define (require) ->
       @rows.style 'background', _.compose(@palette, rowKey)
 
       @cells = @rows.selectAll('td').data(({key, values}) -> [key, values])
-                  .enter()
-                  .append('td')
+      @cells.enter().append('td')
 
       @cells.text _.identity
 
@@ -113,8 +106,9 @@ define (require) ->
           .append('path')
           .each(setCurrent findNeighborArc)
           .attr('fill', _.compose(@palette, key))
-          .append('title').text(title)
+      @titles = @path.selectAll('title').data (d) -> [title d]
+      @titles.enter().append('title')
+      @titles.text _.identity
 
       _.defer => @path.transition().duration(250).attrTween('d', arcTween @arc)
 
-      @path.selectAll('title').text title
