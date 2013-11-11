@@ -14,4 +14,5 @@
   :plugins [[lein-ring "0.8.5"]]
   :source-paths ["src/clojure"]
   :ring {:handler pubtrend.handler/app}
+  :aliases {"locations" ["run" "-m" "pubtrend.tasks/locations"]}
   :profiles {:dev {:dependencies [[ring-mock "0.1.5"]]}})
