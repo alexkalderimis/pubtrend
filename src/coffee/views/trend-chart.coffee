@@ -162,9 +162,9 @@ define (require) ->
       shift = -(halfBar / nBars)
       return shift + delta
 
-    getBarColour: (d, i) =>
-      scale = (@_barScale ?= d3.scale.category20())
-      return scale(i)
+    palette: d3.scale.category20()
+
+    getBarColour: (d, i) => @palette @model.get('terms')[i]
 
     onBarClick: () ->
       self = this # need to enable d3 this binding
