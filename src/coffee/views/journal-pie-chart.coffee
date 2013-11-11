@@ -33,11 +33,9 @@ define (require) ->
       @model.on 'change:view', (model, view) =>
         setTimeout(@reflow, 100) if view is 'journals'
       @on 'journal:interest', (journal) =>
-        console.log journal
         [ofInterest, boring] = (arcTween f for f in [@interestArc, @arc])
         tween = if journal?
           (d, i) ->
-            console.log journal, d
             f = if journal is key d then ofInterest else boring
             f.apply @, arguments
         else
@@ -53,18 +51,22 @@ define (require) ->
     reflow: =>
       height = @$el.height()
       width = @$el.width()
-      radius = Math.min(width, height) / 2
       ratio = width / height
-      moveToPosition = if ratio >= 2
-        "translate(#{ width / 4},#{ height / 2})"
-      else
-        "translate(#{ width / 2},#{ height / 2})"
+      showTable = ratio >= 1.5
+      radius = if showTable and ratio < 2 then width / 6 else 0.5 * Math.min width, height
+      pieXOffset = if showTable then width / 4 else width /2
+      moveToPosition = "translate(#{ pieXOffset },#{ height / 2})"
 
       @detailG.attr 'transform', moveToPosition
       @arc = d3.svg.arc().innerRadius(radius * 0.3).outerRadius(radius * 0.9)
       @interestArc = d3.svg.arc().innerRadius(radius * 0.4).outerRadius(radius)
-      @$('.legend').toggle ratio >= 2
-      @updatePieChart()
+      @$('.legend').toggle showTable
+      data = d3.nest()
+              .key(({journal: {title}}) -> title)
+              .rollup(({length}) -> length)
+              .entries(@collection.toJSON())
+      @updateTable data.slice() if showTable
+      @updatePieChart data.slice()
 
     render: ->
       @$el.html @template @model.toJSON()
@@ -101,14 +103,7 @@ define (require) ->
 
       @cells.text _.identity
 
-      @$('.legend').show()
-
-    updatePieChart: =>
-      data = d3.nest()
-              .key(({journal: {title}}) -> title)
-              .rollup(({length}) -> length)
-              .entries(@collection.toJSON())
-      @updateTable(data.slice())
+    updatePieChart: (data) ->
       data0 = @path.data()
       data1 = @layout(data)
       wasBefore = findOldDatum data0, (i) -> -> data1[i] if ++i <  data1.length
